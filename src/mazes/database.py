@@ -24,9 +24,15 @@ This is the main line that you would have to modify if you wanted to use a diffe
 - SQLALCHEMY_DATABASE_URL = "postgresql://user:password@postgresserver/db"
 ...and adapt it with your database data and credentials (equivalently for MySQL, MariaDB or any other).
 
+
+sqlalchemy.exc.ArgumentError: Invalid SQLite URL: sqlite://mazes_app.db
+Valid SQLite URL forms are:
+sqlite:///:memory: (or, sqlite://)
+sqlite:///relative/path/to/file.db
+sqlite:////absolute/path/to/file.db
 '''
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///./mazes_app.db"
+SQLALCHEMY_DATABASE_URL = "sqlite:///mazes_app.db"
 # SQLALCHEMY_DATABASE_URL = "postgresql://user:password@postgresserver/db"
 
 '''

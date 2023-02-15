@@ -1,7 +1,7 @@
 
 >>> import sqlite3
 
->>> sqliteConnection  = sqlite3.connect("src/mazes/mazes_app.db")
+>>> sqliteConnection  = sqlite3.connect("src/maze/mazes_app.db")
 
 >>> sqliteConnection
 <sqlite3.Connection object at 0x00000198DAA8A8A0>
@@ -11,9 +11,7 @@
 
 
 >>> all_tables_query = """SELECT name FROM sqlite_master WHERE type='table';"""
-
 >>> all_tables_query
->
 "SELECT name FROM sqlite_master WHERE type='table';"
 
 
@@ -21,7 +19,6 @@
 <sqlite3.Cursor object at 0x00000198DAA449D0>
 
 >>> cursor.fetchall()
-
 [('users',), ('items',)]
 
 
@@ -31,9 +28,7 @@
 <sqlite3.Cursor object at 0x00000198DAA449D0>
 
 >>>cursor.fetchall()
-
- [(1, 'bogdan.trif@materialise.be', 'obafgkm1979notreallyhashed', 1), 
-(2, 'basta.alpha@yahoo.com', 'o_parolanotreallyhashed', 1)]
+[(1, 'bogdan.trif@materialise.be', 'obafgkm1979notreallyhashed', 1), (2, 'basta.alpha@yahoo.com', 'o_parolanotreallyhashed', 1)]
 
 >>> cursor.close()
 

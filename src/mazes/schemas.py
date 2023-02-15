@@ -123,6 +123,7 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
+    username: str
     password: str
 
 
@@ -136,6 +137,7 @@ class UserCreate(UserBase):
 class User(UserBase):
     id: int
     is_active: bool
+    username: str
     items: list[Item] = []
     hashed_password : str
 
@@ -182,6 +184,37 @@ you can declare the specific data you want to return and it will be able to go a
 '''
 
 
+################################
+
+'''
+======   Handle JWT tokens
+    Import the modules installed.
+
+Create a random secret key that will be used to sign the JWT tokens.
+
+To generate a secure random secret key use the command:
+>>> openssl rand -hex 32
+
+- And copy the output to the variable SECRET_KEY (don't use the one in the example).
+- Create a variable ALGORITHM with the algorithm used to sign the JWT token and set it to "HS256".
+- Create a variable for the expiration of the token.
+- Define a Pydantic Model that will be used in the token endpoint for the response.
+- Create a utility function to generate a new access token.
+
+
+
+
+
+'''
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class TokenData(BaseModel):
+    username: Union[str, None] = None
 
 
 
@@ -194,7 +227,13 @@ you can declare the specific data you want to return and it will be able to go a
 
 
 
-######################
+
+
+
+
+
+
+######################              NOT USED !!!!
 '''
 from uuid import UUID
 from pydantic import BaseModel, Field
