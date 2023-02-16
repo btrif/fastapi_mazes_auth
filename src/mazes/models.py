@@ -2,11 +2,6 @@
 
 ##########   =========       SQLAlchemy models     =======
 
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
-
-from sqlalchemy.orm import relationship
-
-from database import Base
 
 '''
 === Create the database models
@@ -24,21 +19,15 @@ from database import Base
 - Create classes that inherit from it.
 - These classes are the SQLAlchemy models.
 - The __tablename__ attribute tells SQLAlchemy the name of the table to use in the database for each of these models.
-'''
 
-'''
+
 === Create model attributes/columns
 - Now create all the model (class) attributes.
 - Each of these attributes represents a column in its corresponding database table.
 - We use Column from SQLAlchemy as the default value.
 - And we pass a SQLAlchemy class "type", as Integer, String, and Boolean, that defines the type in the database, as an argument.
 
-'''
 
-
-
-
-'''
 == Create the relationships
 - Now create the relationships.
 - For this, we use relationship provided by SQLAlchemy ORM.
@@ -54,6 +43,11 @@ from the database in the items table and populate them here.
 It will use the owner_id attribute/column with its foreign key to know which record to get from the users table.
 
 '''
+
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
+from sqlalchemy.orm import relationship
+from database import Base
+
 
 class User(Base):
     __tablename__ = "users"

@@ -63,14 +63,6 @@ pydantic will process either a unix timestamp int (e.g. 1496498400) or a string 
 - friends uses Python's typing system, and requires a list of integers. As with id, integer-like objects will be converted to integers.
 
 
-'''
-
-from typing import Union
-
-from pydantic import BaseModel
-
-
-'''
 Create initial Pydantic models / schemas
 Create an ItemBase and UserBase Pydantic models (or let's say "schemas") to have common attributes while creating or reading data.
 And create an ItemCreate and UserCreate that inherit from them (so they will have the same attributes), 
@@ -78,18 +70,9 @@ plus any additional data (attributes) needed for creation.
 So, the user will also have a password when creating it.
 But for security, the password won't be in other Pydantic models, 
 for example, it won't be sent from the API when reading a user.
-'''
-
-class ItemBase(BaseModel):
-    title: str
-    description: Union[str, None] = None
 
 
-class ItemCreate(ItemBase):
-    pass
 
-
-'''
 ==     Create Pydantic models / schemas for reading / returning
 - Now create Pydantic models (schemas) that will be used when reading data, when returning it from the API.
 - For example, before creating an item, we don't know what will be the ID assigned to it, 
@@ -108,45 +91,15 @@ name: str
 
 Have it in mind, so you don't get confused when using = and : with them.
 
-'''
-
-class Item(ItemBase):
-    id: int
-    owner_id: int
-
-    class Config:
-        orm_mode = True
 
 
-class UserBase(BaseModel):
-    email: str
-
-
-class UserCreate(UserBase):
-    username: str
-    password: str
-
-
-'''
 - Use Pydantic's orm_mode
 - Now, in the Pydantic models for reading, Item and User, add an internal Config class.
 - This Config class is used to provide configurations to Pydantic.
 - In the Config class, set the attribute orm_mode = True.
-'''
-
-class User(UserBase):
-    id: int
-    is_active: bool
-    username: str
-    items: list[Item] = []
-    hashed_password : str
-
-    class Config:
-        orm_mode = True
 
 
-'''
-- Tip:
+== Tip:
 Notice it's assigning a value with =, like:
 orm_mode = True
 It doesn't use : as for the type declarations before.
@@ -181,19 +134,20 @@ Even if you declared those relationships in your Pydantic models.
 
 But with ORM mode, as Pydantic itself will try to access the data it needs from attributes (instead of assuming a dict), 
 you can declare the specific data you want to return and it will be able to go and get it, even from ORMs.
-'''
+
 
 
 ################################
 
-'''
+
 ======   Handle JWT tokens
     Import the modules installed.
 
 Create a random secret key that will be used to sign the JWT tokens.
 
 To generate a secure random secret key use the command:
->>> openssl rand -hex 32
+
+    #>>> openssl rand -hex 32
 
 - And copy the output to the variable SECRET_KEY (don't use the one in the example).
 - Create a variable ALGORITHM with the algorithm used to sign the JWT token and set it to "HS256".
@@ -202,62 +156,44 @@ To generate a secure random secret key use the command:
 - Create a utility function to generate a new access token.
 
 
-
-
-
 '''
 
 
-class Token(BaseModel):
-    access_token: str
-    token_type: str
+
+from typing import Union
+
+from pydantic import BaseModel
 
 
-class TokenData(BaseModel):
-    username: Union[str, None] = None
+class ItemBase(BaseModel):
+    title: str
+    description: Union[str, None] = None
 
 
+class ItemCreate(ItemBase):
+    pass
 
 
+class Item(ItemBase):
+    id: int
+    owner_id: int
+
+    class Config:
+        orm_mode = True
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-######################              NOT USED !!!!
-'''
-from uuid import UUID
-from pydantic import BaseModel, Field
-
-class TokenSchema(BaseModel):
-    access_token: str
-    refresh_token: str
-
-
-class TokenPayload(BaseModel):
-    sub: str = None
-    exp: int = None
-
-
-class UserAuth(BaseModel):
-    email: str = Field(..., description="user email")
-    password: str = Field(..., min_length=5, max_length=24, description="user password")
-
-
-class UserOut(BaseModel):
-    id: UUID
+class UserBase(BaseModel):
     email: str
 
 
-class SystemUser(UserOut):
+class UserCreate(UserBase):
     password: str
-'''
+
+
+class User(UserBase):
+    id: int
+    is_active: bool
+    items: list[Item] = []
+
+    class Config:
+        orm_mode = True

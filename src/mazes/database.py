@@ -1,10 +1,6 @@
 #  Created by btrif Trif on 01-02-2023 , 10:59 AM.
 # https://fastapi.tiangolo.com/tutorial/sql-databases/#__tabbed_1_2
 
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-
 '''
 === Create a database URL for SQLAlchemy
 
@@ -30,12 +26,8 @@ Valid SQLite URL forms are:
 sqlite:///:memory: (or, sqlite://)
 sqlite:///relative/path/to/file.db
 sqlite:////absolute/path/to/file.db
-'''
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///mazes_app.db"
-# SQLALCHEMY_DATABASE_URL = "postgresql://user:password@postgresserver/db"
 
-'''
 == Create the SQLAlchemy engine
 - The first step is to create a SQLAlchemy "engine".
 - We will later use this engine in other places.
@@ -57,9 +49,6 @@ so there's no need for that default mechanism.
 
 '''
 
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
-)
 
 '''
 == Create a SessionLocal class
@@ -71,14 +60,24 @@ engine = create_engine(
 
 
 
-'''
-
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-'''
 == Create a Base class
 - Now we will use the function declarative_base() that returns a class.
 - Later we will inherit from this class to create each of the database models or classes (the ORM models):
 '''
 
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+
+
+SQLALCHEMY_DATABASE_URL = "sqlite:///mazes_app.db"
+# SQLALCHEMY_DATABASE_URL = "postgresql://user:password@postgresserver/db"
+
+db_engine = create_engine(
+        SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+        )
+
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=db_engine)
+
 Base = declarative_base()
+
