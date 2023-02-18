@@ -26,7 +26,8 @@ Import models (the SQLAlchemy models) and schemas (the Pydantic models / schemas
 = Tip:
 
 - By creating functions that are only dedicated to interacting with the database (get a user or an item) 
-independent of your path operation function, you can more easily reuse them in multiple parts and also add unit tests for them.
+independent of your path operation function, you can more easily reuse them in multiple parts and also add unit tests
+for them.
 
 === Create data
 Now create utility functions to create data.
@@ -40,7 +41,8 @@ Now create utility functions to create data.
 
 
 - The SQLAlchemy model for User contains a hashed_password that should contain a secure hashed version of the password.
-- But as what the API client provides is the original password, you need to extract it and generate the hashed password in your application.
+- But as what the API client provides is the original password, you need to extract it and generate the hashed
+password in your application.
 - And then pass the hashed_password argument with the value to save.
 
 = Warning
@@ -67,46 +69,47 @@ Item(**item.dict(), owner_id=user_id)
 
 '''
 
-
-
 import models
 import schemas
 from utils import get_hashed_password, verify_password
 from sqlalchemy.orm import Session
 
 
-def get_user(db: Session, user_id: int):
-    return db.query(models.User).filter(models.User.id == user_id).first()
+def get_user(db: Session, user_name: str) :
+    return db.query(models.User).filter(models.User.username == user_name).first()
 
 
-def get_user_by_email(db: Session, email: str):
+def get_user_by_email(
+        db: Session,
+        email: str
+        ) :
     return db.query(models.User).filter(models.User.email == email).first()
 
 
-def get_users(db: Session, skip: int = 0, limit: int = 100):
+def get_users(db: Session, skip: int = 0, limit: int = 100) :
     return db.query(models.User).offset(skip).limit(limit).all()
 
 
-def create_user(db: Session, user: schemas.UserCreate):
-    fake_hashed_password = user.password + "notreallyhashed"
-    db_user = models.User(email=user.email, hashed_password=fake_hashed_password)
+def create_user(db: Session, user: schemas.UserCreate) :
+    fake_hashed_password = user.password + "_notreallyhashed"
+    db_user = models.User(
+            username=user.username,
+            email=user.email,
+            hashed_password=fake_hashed_password
+            )
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
     return db_user
 
 
-def get_items(db: Session, skip: int = 0, limit: int = 100):
+def get_items(db: Session, skip: int = 0, limit: int = 100) :
     return db.query(models.Item).offset(skip).limit(limit).all()
 
 
-def create_user_item(db: Session, item: schemas.ItemCreate, user_id: int):
+def create_user_item(db: Session, item: schemas.ItemCreate, user_id: int) :
     db_item = models.Item(**item.dict(), owner_id=user_id)
     db.add(db_item)
     db.commit()
     db.refresh(db_item)
     return db_item
-
-
-
-
