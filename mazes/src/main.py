@@ -109,7 +109,7 @@ async def get_current_user(
         token: str = Depends(oauth2_scheme),
         ) :
 
-    operation1 = fake_decode_token(db, token)
+    operation1 = fake_decode_token( token)
     print(f"operation1 : {operation1}")
 
     username = crud.get_user(db, user_name=token)
@@ -198,4 +198,4 @@ def read_items(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)) :
 if __name__ == "__main__" :
     import uvicorn
 
-    uvicorn.run("mazes.main:mazes_app", log_level="info", reload=True, port=8000)
+    uvicorn.run("main:mazes_app", log_level="info", reload=True, port=8000)

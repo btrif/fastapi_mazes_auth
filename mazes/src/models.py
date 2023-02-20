@@ -60,6 +60,9 @@ class User(Base):
 
     items = relationship("Item", back_populates="owner")
 
+    def __repr__(self):
+        return f"id: {self.id}, username: {self.username}, email: {self.email}, is_active: {self.is_active}, items: {self.items} "
+
 
 class Item(Base):
     __tablename__ = "items"
