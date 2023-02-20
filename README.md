@@ -32,7 +32,7 @@
 
 >>>cursor.fetchall()
 
- [(1, 'bogdan.trif@materialise.be', 'obafgkm1979notreallyhashed', 1), 
+ [(1, 'bogdan@santa.com', 'notreallyhashed', 1), 
 (2, 'basta.alpha@yahoo.com', 'o_parolanotreallyhashed', 1)]
 
 >>> cursor.close()
