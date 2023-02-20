@@ -1,35 +1,40 @@
 #  Created by btrif Trif on 31-01-2023 , 3:56 PM.
 
-from fastapi.responses import RedirectResponse
-
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
 from fastapi import Depends, FastAPI, HTTPException, status
 from sqlalchemy.orm import Session
+from fastapi.responses import RedirectResponse
 
 import crud
-from schemas import User
 import models
-from database import SessionLocal, db_engine
+from database import get_db
+
+from schemas import oauth2_scheme
+import routers
 
 
-# creates all the tables into the database; will not attempt to recreate tables already
-#         present in the target database
-models.Base.metadata.create_all(bind=db_engine)
+from utils import verify_password, get_current_user, fake_decode_token
 
 mazes_app = FastAPI()
 
-# First condition required for Token Authorize button
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+# mazes_app.include_router(routers.docs)
+# mazes_app.include_router(
+#
+#         prefix="/admin",
+#         tags=["admin"],
+#         dependencies=[Depends(fake_decode_token)],
+#         responses={418: {"description": "I'm a teapot"}},
+#         )
 
 
-# Dependency
-def get_db() :
-    db = SessionLocal()
-    try :
-        yield db
-    finally :
-        db.close()
+
+
+# # First condition required for Token Authorize button
+# oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+
 
 
 '''
@@ -95,45 +100,58 @@ async def simple_hello_world() :
 '''
 
 
-def fake_decode_token( token) :
-    # This doesn't provide any security at all
-    # Check the next version
-    user = crud.get_user(get_db, token)
-    return user
-
 
 # Method required for Authorization Button
 # token: str = Depends(oauth2_scheme)   is REQUIRED
-async def get_current_user(
+async def get_curr_user(
         db: Session = Depends(get_db),
         token: str = Depends(oauth2_scheme),
         ) :
 
-    operation1 = fake_decode_token( token)
-    print(f"operation1 : {operation1}")
 
-    username = crud.get_user(db, user_name=token)
-    print(f"token is : {token}")
-    print(f"username is : {username}")
+    username = "evanzo"
+    current_user = crud.get_user(db, username)
 
-    if not username :
-        raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid authentication credentials",
-                headers={"WWW-Authenticate" : "Bearer"},
-                )
+    #
+    # operation1 = fake_decode_token( token)
+    # print(f"operation1 : {operation1}")
+    #
+    # username = crud.get_user(db, user_name=token)
+    # print(f"token is : {token}")
+    # print(f"username is : {username}")
+    #
+    # if not username :
+    #     raise HTTPException(
+    #             status_code=status.HTTP_401_UNAUTHORIZED,
+    #             detail="Invalid authentication credentials",
+    #             headers={"WWW-Authenticate" : "Bearer"},
+    #             )
     return username
+
+
+
 
 
 # Third Required Step for Authorization Button
-@mazes_app.get("/user")
-async def read_user(
-        username: User = Depends(get_current_user),
-        ) :
+# @mazes_app.get("/user")
+# async def read_user(
+#         username: User = Depends(get_curr_user),
+#         ) :
+#
+#     return username
 
 
 
-    return username
+
+@mazes_app.get("/users/me")
+async def read_users_me(current_user: models.User = Depends(get_current_user)):
+    return current_user
+
+
+
+
+
+
 
 
 # Second Step :    Without   token: str = Depends(oauth2_scheme)
@@ -181,12 +199,12 @@ async def hello_user(
         }
 '''
 
-
+'''
 # Simple redirection to /docs
 @mazes_app.get('/', response_class=RedirectResponse, include_in_schema=False)
 async def docs() :
     return RedirectResponse(url='/docs')
-
+'''
 
 '''
 @mazes_app.get("/items/", response_model=list[ schemas.Item ])
@@ -194,6 +212,13 @@ def read_items(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)) :
     items = crud.get_items(db, skip=skip, limit=limit)
     return items
 '''
+
+
+# Simple redirection to /docs
+@mazes_app.get('/', response_class=RedirectResponse, include_in_schema=False)
+async def docs() :
+    return RedirectResponse(url='/docs')
+
 
 if __name__ == "__main__" :
     import uvicorn

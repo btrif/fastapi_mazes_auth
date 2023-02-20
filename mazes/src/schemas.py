@@ -162,6 +162,7 @@ To generate a secure random secret key use the command:
 
 from typing import Union
 
+from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel
 
 
@@ -198,3 +199,17 @@ class User(UserBase):
 
     class Config:
         orm_mode = True
+
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class TokenData(BaseModel):
+    username: Union[str, None] = None
+
+
+# First condition required for Token Authorize button
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
