@@ -166,6 +166,8 @@ from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel
 
 
+###########         Item Schema        ############
+
 class ItemBaseSchema(BaseModel):
     title: str
     description: Union[str, None] = None
@@ -182,6 +184,8 @@ class ItemSchema(ItemBaseSchema):
     class Config:
         orm_mode = True
 
+
+###########         User Schema        ############
 
 class UserBaseSchema(BaseModel):
     username: str
@@ -201,6 +205,7 @@ class UserSchema(UserBaseSchema):
         orm_mode = True
 
 
+###########         Token Schema        ############
 
 class TokenSchema(BaseModel):
     access_token: str
@@ -211,5 +216,5 @@ class TokenDataSchema(BaseModel):
     username: Union[str, None] = None
 
 
-# First condition required for Token Authorize button
+###### First condition required for Token Authorize button           #######
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")

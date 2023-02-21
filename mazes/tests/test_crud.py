@@ -1,12 +1,15 @@
 #  Created by btrif Trif on 19-02-2023 , 8:49 PM.
+import random
+import string
+
 import models
-from crud import get_hashed_password, verify_password, get_user_by_email, create_user, delete_user
+from crud import get_hashed_password, verify_password, get_user_by_email, create_user, delete_user, create_user_item
 from database import db_engine
 
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 
-from schemas import UserCreateSchema
+from schemas import UserCreateSchema, ItemCreateSchema
 
 this_session = sessionmaker(bind=db_engine)
 current_test_session = this_session()
@@ -62,12 +65,11 @@ def test_create_user() :
     test_passwd = "biciul"
 
     if not get_user_by_email(current_test_session, test_email) :
-
         db_test_user = UserCreateSchema(
-            username=test_username,
-            email=test_email,
-            password=test_passwd
-            )
+                username=test_username,
+                email=test_email,
+                password=test_passwd
+                )
 
         created_user = create_user(current_test_session, db_test_user)
 
@@ -78,10 +80,30 @@ def test_create_user() :
     assert get_user_by_email(current_test_session, test_email)
 
 
-def test_delete_user():
-
+def test_delete_user() :
     test_email = "biciul@biciul.eu"
 
     deleted_result = delete_user(current_test_session, test_email)
     print(f"deleted_result = \n{deleted_result}")
 
+
+def generate_random_word_helper(min_nr_letters, max_nr_letters) :
+    letters = [ random.choice(string.ascii_lowercase) for _ in range(random.randint(min_nr_letters, max_nr_letters)) ]
+    return ''.join(letters).capitalize()
+
+
+def test_create_user_item() :
+    test_title = generate_random_word_helper(5, 15)
+    test_description = ' '.join([ generate_random_word_helper(2, 9) for _ in range(4, 12) ])
+
+    print(f"\ntest_title : \n{test_title}")
+    print(f"\ntest_description : \n{test_description}")
+
+    user_id = random.randint(1, 7)
+    test_item = ItemCreateSchema(title=test_title, description=test_description)
+    created_result = create_user_item(current_test_session, test_item, user_id)
+
+    print(f"\ncreated_result : {created_result}")
+
+    assert created_result.title is not None
+    assert created_result.description is not None

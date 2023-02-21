@@ -8,10 +8,10 @@ from fastapi import Depends, FastAPI, HTTPException, status
 from sqlalchemy.orm import Session
 from fastapi.responses import RedirectResponse
 
-from crud import get_user, get_user_by_email, get_hashed_password, verify_password
+from crud import get_user, get_user_by_email, get_hashed_password, verify_password, create_user_item
 from database import get_db
 
-from schemas import oauth2_scheme, UserSchema, TokenSchema, UserCreateSchema
+from schemas import oauth2_scheme, UserSchema, TokenSchema, UserCreateSchema, ItemCreateSchema, ItemSchema
 
 from utils import get_current_user, ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token
 
@@ -60,21 +60,31 @@ def read_users(
     return users
 '''
 
-'''
-@mazes_app.post("/users/{user_id}/items/", response_model=schemas.Item)
-def create_item_for_user(
+
+@mazes_app.post("/users/{user_id}/items/", response_model=ItemSchema)
+def create_item_for_user_only_if_authenticated(
         user_id: int,
-        item: schemas.ItemCreate,
+        item: ItemCreateSchema,
         db: Session = Depends(get_db)
         ) :
-    return crud.create_user_item(db=db, item=item, user_id=user_id)
-
-'''
+    return create_user_item(db=db, item=item, user_id=user_id)
 
 
-@mazes_app.get("/just_simple_hello")
+
+
+@mazes_app.get("/hello")
 async def simple_hello_world() :
-    # return {"message": "Hello World"}
+    return {"message" : "Well Done !"}
+
+
+
+@mazes_app.get("/users/me", response_model=UserSchema)
+async def read_users_me(current_user: UserSchema = Depends(get_current_user)) :
+    return current_user
+
+
+@mazes_app.get("/my_user", response_model=dict)
+async def hello_user(current_user: UserSchema = Depends(get_current_user)) :
 
     date = datetime.now().strftime("%d.%m.%Y")
     time = datetime.now().strftime("%H:%M")
@@ -82,18 +92,16 @@ async def simple_hello_world() :
 
     return {
         "message" : {
-            "Hello" : "World",
+            "Your username is : " : current_user.username,
             "Today is" : date,
-            "and the time is" : time,
+            "Time is" : time,
             "processor" : processor,
-            "status" : "Your App is Up & running"
+            "and you have the following items : " : current_user.items,
+
             }
         }
 
 
-@mazes_app.get("/users/me", response_model=UserSchema)
-async def read_users_me(current_user: UserSchema = Depends(get_current_user)) :
-    return current_user
 
 
 ### Second Step :    Without   token: str = Depends(oauth2_scheme)
@@ -137,37 +145,8 @@ async def login(
         "token_type" : "bearer"
         }
 
-    # return user
 
 
-'''
-@mazes_app.get("/hello_user")
-async def hello_user(
-        username: str,
-        db: Session = Depends(get_db),
-        token: str = Depends(oauth2_scheme),
-        form_data: OAuth2PasswordRequestForm = Depends()
-        ) :
-    db_user = crud.get_user(db, user_name=username)
-    if db_user is None :
-        raise HTTPException(status_code=404, detail="User not found")
-
-
-
-    return {
-        "message" : {
-            "Hello" : db_user,
-            # "form_data.username" : form_data.username,
-            }
-        }
-'''
-
-'''
-# Simple redirection to /docs
-@mazes_app.get('/', response_class=RedirectResponse, include_in_schema=False)
-async def docs() :
-    return RedirectResponse(url='/docs')
-'''
 
 '''
 @mazes_app.get("/items/", response_model=list[ schemas.Item ])
