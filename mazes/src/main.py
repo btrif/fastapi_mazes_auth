@@ -1,4 +1,5 @@
 #  Created by btrif Trif on 31-01-2023 , 3:56 PM.
+from datetime import timedelta
 
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
@@ -8,16 +9,16 @@ from fastapi.responses import RedirectResponse
 
 import crud
 import models
+
 from database import get_db
 
-from schemas import oauth2_scheme
+from schemas import oauth2_scheme, UserSchema, TokenSchema
 import routers
 
-
-from utils import verify_password, get_current_user, fake_decode_token
+from utils import verify_password, get_current_user, get_hashed_password, ACCESS_TOKEN_EXPIRE_MINUTES, \
+    create_access_token
 
 mazes_app = FastAPI()
-
 
 # mazes_app.include_router(routers.docs)
 # mazes_app.include_router(
@@ -29,12 +30,8 @@ mazes_app = FastAPI()
 #         )
 
 
-
-
 # # First condition required for Token Authorize button
 # oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
-
 
 
 '''
@@ -100,15 +97,12 @@ async def simple_hello_world() :
 '''
 
 
-
 # Method required for Authorization Button
 # token: str = Depends(oauth2_scheme)   is REQUIRED
 async def get_curr_user(
         db: Session = Depends(get_db),
         token: str = Depends(oauth2_scheme),
         ) :
-
-
     username = "evanzo"
     current_user = crud.get_user(db, username)
 
@@ -129,9 +123,6 @@ async def get_curr_user(
     return username
 
 
-
-
-
 # Third Required Step for Authorization Button
 # @mazes_app.get("/user")
 # async def read_user(
@@ -141,23 +132,16 @@ async def get_curr_user(
 #     return username
 
 
-
-
-@mazes_app.get("/users/me")
-async def read_users_me(current_user: models.User = Depends(get_current_user)):
+@mazes_app.get("/users/me", response_model=UserSchema)
+async def read_users_me(current_user: UserSchema = Depends(get_current_user)) :
     return current_user
 
 
 
-
-
-
-
-
-# Second Step :    Without   token: str = Depends(oauth2_scheme)
-# the Authorization button does not appear !
-# Also, token should not be present in here !
-@mazes_app.post("/token")
+### Second Step :    Without   token: str = Depends(oauth2_scheme)
+#   the Authorization button does not appear !
+#   Also, token should not be present in here !
+@mazes_app.post("/token", response_model=TokenSchema)
 async def login(
         db: Session = Depends(get_db),
         form_data: OAuth2PasswordRequestForm = Depends(),
@@ -166,15 +150,36 @@ async def login(
     user = crud.get_user(db, user_name=form_data.username)
 
     if user is None :
-        raise HTTPException(status_code=404, detail="User not found")
-    print(f"form_data typed user : {form_data.username}   'typed passwd: ' {form_data.password}")
+        raise HTTPException(
+                status_code=404, detail="User not found",
+                headers={"WWW-Authenticate" : "Bearer"},
+                )
+    print(f"form_data typed user : {form_data.username}")
+    print(f" form_data  'typed passwd: ' {form_data.password}")
+    print(f"hashed_password : {get_hashed_password(form_data.password)}")
+    print(f"password from DB : {user.hashed_password}")
 
     # 2. Check password :
-    user_passwd = form_data.password
-    if not user_passwd == user.hashed_password :
-        raise HTTPException(status_code=400, detail="Incorrect password")
+    user_hashed_passwd = user.hashed_password
+    print(f"Check : {verify_password(form_data.password, user.hashed_password)}")
 
-    return user
+    if not verify_password(form_data.password, user.hashed_password) :
+        raise HTTPException(
+                status_code=400,
+                detail="Incorrect password",
+                headers={"WWW-Authenticate" : "Bearer"},
+                )
+
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+            data={"sub" : user.username}, expires_delta=access_token_expires
+            )
+    return {
+        "access_token" : access_token,
+        "token_type" : "bearer"
+        }
+
+    # return user
 
 
 '''

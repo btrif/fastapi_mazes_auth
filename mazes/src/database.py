@@ -65,7 +65,7 @@ so there's no need for that default mechanism.
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
-import models
+
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///../mazes_app.db"
 # SQLALCHEMY_DATABASE_URL = "postgresql://user:password@postgresserver/db"

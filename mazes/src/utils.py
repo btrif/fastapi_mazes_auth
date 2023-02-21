@@ -1,6 +1,8 @@
 #  Created by btrif Trif on 31-01-2023 , 3:53 PM.
 from fastapi import Depends, status, HTTPException
+from sqlalchemy.orm import Session
 from passlib.hash import pbkdf2_sha256
+from passlib.context import CryptContext
 
 import os
 from datetime import datetime, timedelta
@@ -10,22 +12,23 @@ from jose import jwt, JWTError
 
 import crud
 import models
-from schemas import TokenData, Token, oauth2_scheme
+from schemas import TokenDataSchema, TokenSchema, oauth2_scheme
 from crud import get_user
-
+from database import get_db
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 30  # 30 minutes
-REFRESH_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7 # 7 days
+REFRESH_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
 ALGORITHM = "HS256"
-JWT_SECRET_KEY = "alpha_Beta_gamma_delta_abcdef_0123456789"   # should be kept secret
+JWT_SECRET_KEY = "alpha_Beta_gamma_delta_abcdef_0123456789"  # should be kept secret
 # JWT_SECRET_KEY = os.environ['JWT_SECRET_KEY']   # should be kept secret
-JWT_REFRESH_SECRET_KEY = "alpha_Beta_gamma_delta_abcdef_0123456789"   # should be kept secret
+JWT_REFRESH_SECRET_KEY = "alpha_Beta_gamma_delta_abcdef_0123456789"  # should be kept secret
 # JWT_REFRESH_SECRET_KEY = os.environ['JWT_REFRESH_SECRET_KEY']    # should be kept secret
 
+pwd_context = CryptContext(schemes=[ "bcrypt" ], deprecated="auto")
 
 ######      Make and Verify hashed passwords
 
-
+'''
 def get_hashed_password(password: str) -> str:
     return pbkdf2_sha256.hash(password)
 
@@ -33,15 +36,24 @@ def get_hashed_password(password: str) -> str:
 def verify_password(password: str, hashed_pass: str) -> bool:
     # return password_context.verify(password, hashed_pass)
     return pbkdf2_sha256.verify(password, hashed_pass)
+'''
 
 
-def authenticate_user(db, username: str, password: str):
+def get_hashed_password(password: str) -> str :
+    return pwd_context.hash(password)
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool :
+    return pwd_context.verify(plain_password, hashed_password)
+
+
+def authenticate_user(db, username: str, password: str) :
     user = get_user(db, username)
     print(f"user : {user}")
-    if not user:
+    if not user :
         print(f"if not user <-------")
         return False
-    if not verify_password(password, user.hashed_password):
+    if not verify_password(password, user.hashed_password) :
         print(f"if not verify_password <-------")
         print(f"password : {password} <-------")
         print(f"user.hashed_password : {user.hashed_password} <-------")
@@ -49,67 +61,70 @@ def authenticate_user(db, username: str, password: str):
     return user
 
 
-
-def fake_decode_token(token):
+def fake_decode_token(token) :
     print(f"token : {token}")
     return models.User(
             username=token + "fakedecoded", email="john@example.com"
             )
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme)):
+async def get_current_user(token: str = Depends(oauth2_scheme)) :
     user = fake_decode_token(token)
     return user
 
 
-
-def authenticate_user(db, username: str, password: str):
+def authenticate_user(db, username: str, password: str) :
     user = crud.get_user(db, username)
-    if not user:
+    if not user :
         return False
-    if not verify_password(password, user.hashed_password):
+    if not verify_password(password, user.hashed_password) :
         return False
     return user
-
-
-
-
-
 
 
 ########################
 ###     Token functions
 
-def create_access_token(data: dict, expires_delta: Union[timedelta, None] = None):
+def create_access_token(data: dict, expires_delta: Union[ timedelta, None ] = None) :
     to_encode = data.copy()
-    if expires_delta:
+    if expires_delta :
         expire = datetime.utcnow() + expires_delta
-    else:
+    else :
         expire = datetime.utcnow() + timedelta(minutes=15)
-    to_encode.update({"exp": expire})
+    to_encode.update({"exp" : expire})
     encoded_jwt = jwt.encode(to_encode, JWT_SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
 
+async def get_current_user(
+        db: Session = Depends(get_db),
+        token: str = Depends(oauth2_scheme)
+        ) :
 
-'''
-async def get_current_user(token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
-            headers={"WWW-Authenticate": "Bearer"},
+            headers={"WWW-Authenticate" : "Bearer"},
             )
-    try:
-        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
+    try :
+        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[ ALGORITHM ])
+        print(f"payload : {payload}")
         username: str = payload.get("sub")
-        if username is None:
+        print(f"spooky username :  {username}")
+
+        if username is None :
             raise credentials_exception
-        token_data = TokenData(username=username)
-    except JWTError:
+
+        token_data = TokenDataSchema(username=username)
+        print(f"token_data : {token_data}")
+    except JWTError :
+        print(f"first {credentials_exception}")
         raise credentials_exception
-    user = get_user(, username=token_data.username)
-    if user is None:
+
+    # Get user from DB
+    user = get_user(db, token_data.username)
+    print(f"user_from_DB : {user}")
+    if user is None :
+        print(f"second {credentials_exception}")
         raise credentials_exception
     return user
-
-'''

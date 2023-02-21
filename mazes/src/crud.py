@@ -93,7 +93,7 @@ def get_users(db: Session, skip: int = 0, limit: int = 100) :
     return db.query(models.User).offset(skip).limit(limit).all()
 
 
-def create_user(db: Session, user: schemas.UserCreate) :
+def create_user(db: Session, user: schemas.UserCreateSchema) :
     fake_hashed_password = user.password + "_notreallyhashed"
     db_user = models.User(
             username=user.username,
@@ -110,7 +110,7 @@ def get_items(db: Session, skip: int = 0, limit: int = 100) :
     return db.query(models.Item).offset(skip).limit(limit).all()
 
 
-def create_user_item(db: Session, item: schemas.ItemCreate, user_id: int) :
+def create_user_item(db: Session, item: schemas.ItemCreateSchema, user_id: int) :
     db_item = models.Item(**item.dict(), owner_id=user_id)
     db.add(db_item)
     db.commit()

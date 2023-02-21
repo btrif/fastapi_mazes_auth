@@ -6,8 +6,8 @@ from database import db_engine
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 
-Session = sessionmaker(bind=db_engine)
-session = Session()
+this_session = sessionmaker(bind=db_engine)
+current_test_session = this_session()
 
 
 
@@ -15,15 +15,15 @@ def test_get_user():
     from crud import get_user
     user_name = "evanzo"
 
-    # Just make a manual session as model
-    session.query(models.User).filter(models.User.username == user_name).first()
+    # Just make a manual session as model, not a real test
+    current_test_session.query(models.User).filter(models.User.username == user_name).first()
 
     # Show the results
-    for user in session.query(models.User):
+    for user in current_test_session.query(models.User):
         print(f"user : {user}")
 
     # effective test of the get_user function
-    get_user_result = get_user(session, user_name )
+    get_user_result = get_user(current_test_session, user_name)
     print(f"\nresult : {get_user_result}")
 
     assert get_user_result.username == user_name

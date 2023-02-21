@@ -166,16 +166,16 @@ from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel
 
 
-class ItemBase(BaseModel):
+class ItemBaseSchema(BaseModel):
     title: str
     description: Union[str, None] = None
 
 
-class ItemCreate(ItemBase):
+class ItemCreateSchema(ItemBaseSchema):
     pass
 
 
-class Item(ItemBase):
+class ItemSchema(ItemBaseSchema):
     id: int
     owner_id: int
 
@@ -183,31 +183,31 @@ class Item(ItemBase):
         orm_mode = True
 
 
-class UserBase(BaseModel):
+class UserBaseSchema(BaseModel):
     username: str
 
 
-class UserCreate(UserBase):
+class UserCreateSchema(UserBaseSchema):
     email: str
     password: str
 
 
-class User(UserBase):
+class UserSchema(UserBaseSchema):
     id: int
     is_active: bool
-    items: list[Item] = []
+    items: list[ItemSchema ] = []
 
     class Config:
         orm_mode = True
 
 
 
-class Token(BaseModel):
+class TokenSchema(BaseModel):
     access_token: str
     token_type: str
 
 
-class TokenData(BaseModel):
+class TokenDataSchema(BaseModel):
     username: Union[str, None] = None
 
 
