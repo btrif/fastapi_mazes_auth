@@ -10,10 +10,9 @@ from typing import Union, Any
 
 from jose import jwt, JWTError
 
-import crud
-import models
+from models import User
 from schemas import TokenDataSchema, TokenSchema, oauth2_scheme
-from crud import get_user
+from crud import get_user, verify_password
 from database import get_db
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 30  # 30 minutes
@@ -67,7 +66,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) :
 
 
 def authenticate_user(db, username: str, password: str) :
-    user = crud.get_user(db, username)
+    user = get_user(db, username)
     if not user :
         return False
     if not verify_password(password, user.hashed_password) :
@@ -79,7 +78,7 @@ def authenticate_user(db, username: str, password: str) :
 ####             Token functions             ####
 
 def fake_decode_token(token) :
-    return models.User(
+    return User(
             username=token + "fakedecoded", email="john@example.com"
             )
 

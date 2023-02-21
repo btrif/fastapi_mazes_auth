@@ -1,17 +1,12 @@
 #  Created by btrif Trif on 20-02-2023 , 4:57 PM.
 from datetime import timedelta
 
+from utils import ACCESS_TOKEN_EXPIRE_MINUTES, get_current_user, create_access_token, authenticate_user
 
-
-from utils import ACCESS_TOKEN_EXPIRE_MINUTES, get_current_user
-
-
-
-
-from utils import authenticate_user
 from database import db_engine
 from sqlalchemy.orm import sessionmaker
 
+# Make local session
 SessionLocalTest = sessionmaker(bind=db_engine)
 test_session = SessionLocalTest()
 
@@ -27,7 +22,7 @@ def test_authenticate_user():
     assert test_user is not False
 
 
-from utils import create_access_token
+
 
 def test_create_access_token():
     test_username = "hiker"
