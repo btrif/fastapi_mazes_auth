@@ -6,11 +6,11 @@ import models
 from crud import get_hashed_password, verify_password, get_user_by_email, create_user, delete_user, create_user_item
 from database import db_engine
 
-from sqlalchemy import select
-from sqlalchemy.orm import sessionmaker
-
 from schemas import UserCreateSchema, ItemCreateSchema
 
+from sqlalchemy.orm import sessionmaker
+
+# Create a test DB session
 this_session = sessionmaker(bind=db_engine)
 current_test_session = this_session()
 

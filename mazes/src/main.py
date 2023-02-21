@@ -1,5 +1,5 @@
 #  Created by btrif Trif on 31-01-2023 , 3:56 PM.
-import subprocess
+
 from datetime import timedelta, datetime
 
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -8,10 +8,9 @@ from fastapi import Depends, FastAPI, HTTPException, status
 from sqlalchemy.orm import Session
 from fastapi.responses import RedirectResponse
 
-from crud import get_user, get_user_by_email, get_hashed_password, verify_password, create_user_item, get_users, \
-    create_user, get_items
+from crud import get_user, get_user_by_email, get_hashed_password, verify_password
 from database import get_db
-from models import User
+
 
 from schemas import oauth2_scheme, UserSchema, TokenSchema, UserCreateSchema, ItemCreateSchema, ItemSchema
 
@@ -19,15 +18,23 @@ from utils import get_current_user, ACCESS_TOKEN_EXPIRE_MINUTES, create_access_t
 
 mazes_app = FastAPI()
 
-'''mazes_app.include_router(routers.docs)
-mazes_app.include_router(
+from routers import users, items
+import admin
 
+mazes_app.include_router(users.users_router)
+mazes_app.include_router(items.items_router)
+mazes_app.include_router(
+        admin.router_admin,
         prefix="/admin",
         tags=["admin"],
-        dependencies=[Depends(fake_decode_token)],
+        dependencies=[Depends(TokenSchema)],
         responses={418: {"description": "I'm a teapot"}},
         )
+
+
+
 '''
+###########     USERS ROUTERS       ###########
 
 
 @mazes_app.post("/create_user/", response_model=UserSchema)
@@ -60,6 +67,21 @@ def read_all_users(
         ) :
     users = get_users(db, skip=skip, limit=limit)
     return users
+    
+    
+
+@mazes_app.get("/list_users/", response_model=list[ UserSchema ])
+def read_all_users(
+        db: Session = Depends(get_db),
+        skip: int = 0,
+        limit: int = 100,
+        ) :
+    users = get_users(db, skip=skip, limit=limit)
+    return users
+'''
+
+'''
+#########               ITEMS   ROUTERS    ##########
 
 
 @mazes_app.post("/create_item", response_model=ItemSchema)
@@ -73,31 +95,19 @@ def create_item_for_user_only_if_authenticated(
     return create_user_item(db=db, item=item, user_id=user_id)
 
 
+
+@mazes_app.get("/items", response_model=list[ ItemSchema ])
+def list_all_items(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)) :
+    items = get_items(db, skip=skip, limit=limit)
+    return items
+
+
+'''
+
+
 @mazes_app.get("/hello")
 async def simple_hello_world() :
     return {"message" : "Well Done !"}
-
-
-@mazes_app.get("/read_myself", response_model=UserSchema)
-async def read_my_user_only_if_authenticated(current_user: UserSchema = Depends(get_current_user)) :
-    return current_user
-
-
-@mazes_app.get("/hello_myself", response_model=dict)
-async def hello_my_user_only_if_authenticated(current_user: UserSchema = Depends(get_current_user)) :
-    date = datetime.now().strftime("%d.%m.%Y")
-    time = datetime.now().strftime("%H:%M")
-    processor = str(subprocess.check_output([ "wmic", "cpu", "get", "name" ]).strip()).split('\\n')[ 1 ]
-
-    return {
-        "message" : {
-            "Your username is : " : current_user.username,
-            "Today is" : date,
-            "Time is" : time,
-            "processor" : processor,
-            "and you have the following items : " : current_user.items,
-            }
-        }
 
 
 ### Second Step :    Without   token: str = Depends(oauth2_scheme)
@@ -140,13 +150,6 @@ async def login(
         "access_token" : access_token,
         "token_type" : "bearer"
         }
-
-
-
-@mazes_app.get("/items", response_model=list[ ItemSchema ])
-def list_all_items(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)) :
-    items = get_items(db, skip=skip, limit=limit)
-    return items
 
 
 
