@@ -39,8 +39,6 @@ def verify_password(password: str, hashed_pass: str) -> bool:
 '''
 
 
-
-
 ###############################
 ####             User functions                 ####
 
@@ -56,8 +54,6 @@ def authenticate_user(db, username: str, password: str) :
         print(f"user.hashed_password : {user.hashed_password} <-------")
         return False
     return user
-
-
 
 
 async def get_current_user(token: str = Depends(oauth2_scheme)) :

@@ -8,8 +8,10 @@ from fastapi import Depends, FastAPI, HTTPException, status
 from sqlalchemy.orm import Session
 from fastapi.responses import RedirectResponse
 
-from crud import get_user, get_user_by_email, get_hashed_password, verify_password, create_user_item
+from crud import get_user, get_user_by_email, get_hashed_password, verify_password, create_user_item, get_users, \
+    create_user, get_items
 from database import get_db
+from models import User
 
 from schemas import oauth2_scheme, UserSchema, TokenSchema, UserCreateSchema, ItemCreateSchema, ItemSchema
 
@@ -29,7 +31,7 @@ mazes_app.include_router(
 
 
 @mazes_app.post("/create_user/", response_model=UserSchema)
-def create_user(
+def create_new_user(
         user: UserCreateSchema,
         db: Session = Depends(get_db)
         ) :
@@ -38,6 +40,8 @@ def create_user(
             db,
             email=user.email
             )
+
+    print(f"create_user db_user :  {db_user}")
 
     if db_user :
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -48,28 +52,25 @@ def create_user(
             )
 
 
-'''
-@mazes_app.get("/users/", response_model=list[ schemas.User ])
-def read_users(
+@mazes_app.get("/list_users/", response_model=list[ UserSchema ])
+def read_all_users(
+        db: Session = Depends(get_db),
         skip: int = 0,
         limit: int = 100,
-        db: Session = Depends(get_db),
-
         ) :
-    users = crud.get_users(db, skip=skip, limit=limit)
+    users = get_users(db, skip=skip, limit=limit)
     return users
-'''
 
 
-@mazes_app.post("/users/{user_id}/items/", response_model=ItemSchema)
+@mazes_app.post("/create_item", response_model=ItemSchema)
 def create_item_for_user_only_if_authenticated(
-        user_id: int,
         item: ItemCreateSchema,
-        db: Session = Depends(get_db)
+        db: Session = Depends(get_db),
+        current_user: UserSchema = Depends(get_current_user)
         ) :
+    user_id = current_user.id
+
     return create_user_item(db=db, item=item, user_id=user_id)
-
-
 
 
 @mazes_app.get("/hello")
@@ -77,15 +78,13 @@ async def simple_hello_world() :
     return {"message" : "Well Done !"}
 
 
-
-@mazes_app.get("/users/me", response_model=UserSchema)
-async def read_users_me(current_user: UserSchema = Depends(get_current_user)) :
+@mazes_app.get("/read_myself", response_model=UserSchema)
+async def read_my_user_only_if_authenticated(current_user: UserSchema = Depends(get_current_user)) :
     return current_user
 
 
-@mazes_app.get("/my_user", response_model=dict)
-async def hello_user(current_user: UserSchema = Depends(get_current_user)) :
-
+@mazes_app.get("/hello_myself", response_model=dict)
+async def hello_my_user_only_if_authenticated(current_user: UserSchema = Depends(get_current_user)) :
     date = datetime.now().strftime("%d.%m.%Y")
     time = datetime.now().strftime("%H:%M")
     processor = str(subprocess.check_output([ "wmic", "cpu", "get", "name" ]).strip()).split('\\n')[ 1 ]
@@ -97,11 +96,8 @@ async def hello_user(current_user: UserSchema = Depends(get_current_user)) :
             "Time is" : time,
             "processor" : processor,
             "and you have the following items : " : current_user.items,
-
             }
         }
-
-
 
 
 ### Second Step :    Without   token: str = Depends(oauth2_scheme)
@@ -147,13 +143,11 @@ async def login(
 
 
 
-
-'''
-@mazes_app.get("/items/", response_model=list[ schemas.Item ])
-def read_items(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)) :
-    items = crud.get_items(db, skip=skip, limit=limit)
+@mazes_app.get("/items", response_model=list[ ItemSchema ])
+def list_all_items(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)) :
+    items = get_items(db, skip=skip, limit=limit)
     return items
-'''
+
 
 
 # Simple redirection to /docs
