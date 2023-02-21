@@ -3,19 +3,7 @@ from datetime import timedelta
 
 
 
-from utils import get_hashed_password, verify_password, ACCESS_TOKEN_EXPIRE_MINUTES, get_current_user
-
-
-def test_get_hashed_password():
-    test_password = "jeni"
-
-    hashed_passwd = get_hashed_password(test_password)
-    print(f"\nhashed_password : \n{hashed_passwd}            {type(hashed_passwd)}")
-
-    assert verify_password(test_password, hashed_passwd) is True
-
-    fake_hashed_password = get_hashed_password("1234")
-    assert verify_password(test_password, fake_hashed_password ) is False
+from utils import ACCESS_TOKEN_EXPIRE_MINUTES, get_current_user
 
 
 

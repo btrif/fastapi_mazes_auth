@@ -1,5 +1,6 @@
 #  Created by btrif Trif on 31-01-2023 , 3:56 PM.
-from datetime import timedelta
+import subprocess
+from datetime import timedelta, datetime
 
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
@@ -7,51 +8,45 @@ from fastapi import Depends, FastAPI, HTTPException, status
 from sqlalchemy.orm import Session
 from fastapi.responses import RedirectResponse
 
-import crud
-import models
-
+from crud import get_user, get_user_by_email, get_hashed_password, verify_password
 from database import get_db
 
-from schemas import oauth2_scheme, UserSchema, TokenSchema
-import routers
+from schemas import oauth2_scheme, UserSchema, TokenSchema, UserCreateSchema
 
-from utils import verify_password, get_current_user, get_hashed_password, ACCESS_TOKEN_EXPIRE_MINUTES, \
-    create_access_token
+from utils import get_current_user, ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token
 
 mazes_app = FastAPI()
 
-# mazes_app.include_router(routers.docs)
-# mazes_app.include_router(
-#
-#         prefix="/admin",
-#         tags=["admin"],
-#         dependencies=[Depends(fake_decode_token)],
-#         responses={418: {"description": "I'm a teapot"}},
-#         )
+'''mazes_app.include_router(routers.docs)
+mazes_app.include_router(
 
-
-# # First condition required for Token Authorize button
-# oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
-
+        prefix="/admin",
+        tags=["admin"],
+        dependencies=[Depends(fake_decode_token)],
+        responses={418: {"description": "I'm a teapot"}},
+        )
 '''
-@mazes_app.post("/create_user/", response_model=schemas.User)
+
+
+@mazes_app.post("/create_user/", response_model=UserSchema)
 def create_user(
-        user: schemas.UserCreate,
+        user: UserCreateSchema,
         db: Session = Depends(get_db)
         ) :
-    db_user = crud.get_user_by_email(
+
+    db_user = get_user_by_email(
             db,
             email=user.email
             )
+
     if db_user :
         raise HTTPException(status_code=400, detail="Email already registered")
-    return crud.create_user(
+
+    return create_user(
             db=db,
             user=user
             )
 
-'''
 
 '''
 @mazes_app.get("/users/", response_model=list[ schemas.User ])
@@ -76,8 +71,8 @@ def create_item_for_user(
 
 '''
 
-'''
-@mazes_app.get("/hello")
+
+@mazes_app.get("/just_simple_hello")
 async def simple_hello_world() :
     # return {"message": "Hello World"}
 
@@ -90,52 +85,15 @@ async def simple_hello_world() :
             "Hello" : "World",
             "Today is" : date,
             "and the time is" : time,
-            "processor" : processor
+            "processor" : processor,
+            "status" : "Your App is Up & running"
             }
         }
-
-'''
-
-
-# Method required for Authorization Button
-# token: str = Depends(oauth2_scheme)   is REQUIRED
-async def get_curr_user(
-        db: Session = Depends(get_db),
-        token: str = Depends(oauth2_scheme),
-        ) :
-    username = "evanzo"
-    current_user = crud.get_user(db, username)
-
-    #
-    # operation1 = fake_decode_token( token)
-    # print(f"operation1 : {operation1}")
-    #
-    # username = crud.get_user(db, user_name=token)
-    # print(f"token is : {token}")
-    # print(f"username is : {username}")
-    #
-    # if not username :
-    #     raise HTTPException(
-    #             status_code=status.HTTP_401_UNAUTHORIZED,
-    #             detail="Invalid authentication credentials",
-    #             headers={"WWW-Authenticate" : "Bearer"},
-    #             )
-    return username
-
-
-# Third Required Step for Authorization Button
-# @mazes_app.get("/user")
-# async def read_user(
-#         username: User = Depends(get_curr_user),
-#         ) :
-#
-#     return username
 
 
 @mazes_app.get("/users/me", response_model=UserSchema)
 async def read_users_me(current_user: UserSchema = Depends(get_current_user)) :
     return current_user
-
 
 
 ### Second Step :    Without   token: str = Depends(oauth2_scheme)
@@ -147,7 +105,7 @@ async def login(
         form_data: OAuth2PasswordRequestForm = Depends(),
         ) :
     # 1.  Get the user from DB
-    user = crud.get_user(db, user_name=form_data.username)
+    user = get_user(db, user_name=form_data.username)
 
     if user is None :
         raise HTTPException(

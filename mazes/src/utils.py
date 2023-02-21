@@ -26,7 +26,8 @@ JWT_REFRESH_SECRET_KEY = "alpha_Beta_gamma_delta_abcdef_0123456789"  # should be
 
 pwd_context = CryptContext(schemes=[ "bcrypt" ], deprecated="auto")
 
-######      Make and Verify hashed passwords
+##############################################
+####                Make and Verify hashed passwords            ####
 
 '''
 def get_hashed_password(password: str) -> str:
@@ -39,13 +40,10 @@ def verify_password(password: str, hashed_pass: str) -> bool:
 '''
 
 
-def get_hashed_password(password: str) -> str :
-    return pwd_context.hash(password)
 
 
-def verify_password(plain_password: str, hashed_password: str) -> bool :
-    return pwd_context.verify(plain_password, hashed_password)
-
+###############################
+####             User functions                 ####
 
 def authenticate_user(db, username: str, password: str) :
     user = get_user(db, username)
@@ -61,11 +59,6 @@ def authenticate_user(db, username: str, password: str) :
     return user
 
 
-def fake_decode_token(token) :
-    print(f"token : {token}")
-    return models.User(
-            username=token + "fakedecoded", email="john@example.com"
-            )
 
 
 async def get_current_user(token: str = Depends(oauth2_scheme)) :
@@ -82,8 +75,14 @@ def authenticate_user(db, username: str, password: str) :
     return user
 
 
-########################
-###     Token functions
+###############################
+####             Token functions             ####
+
+def fake_decode_token(token) :
+    return models.User(
+            username=token + "fakedecoded", email="john@example.com"
+            )
+
 
 def create_access_token(data: dict, expires_delta: Union[ timedelta, None ] = None) :
     to_encode = data.copy()
@@ -100,7 +99,6 @@ async def get_current_user(
         db: Session = Depends(get_db),
         token: str = Depends(oauth2_scheme)
         ) :
-
     credentials_exception = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
@@ -127,4 +125,5 @@ async def get_current_user(
     if user is None :
         print(f"second {credentials_exception}")
         raise credentials_exception
+
     return user
