@@ -103,15 +103,10 @@ class Maze(Base) :
     __tablename__ = "mazes"
 
     id = Column(Integer, primary_key=True, index=True)
-    # grid_size = Column(String)
-    grid_size = Column(String(9))
-    # entrance = Column(String)
-    entrance = Column(String(5))
-    # walls = Column(String)
+    grid_size = Column(String(64))
+    entrance = Column(String(64))
     walls = Column(Text(512))
-    # min_solution = Column(String, default=None)
     min_solution = Column(String(512), default=None)
-    # max_solution = Column(String, default=None)
     max_solution = Column(String(512), default=None)
     owner_id = Column(Integer, ForeignKey("users.id"))
 
@@ -120,7 +115,7 @@ class Maze(Base) :
 
 
     def __repr__(self) :
-        return f"< id : {self.id},  grid_size : {self.grid_size},  " \
+        return f"grid_size : {self.grid_size},  " \
                f"entrance : {self.entrance}, walls : {self.walls}, " \
                f"min_solution : {self.min_solution},  max_solution : {self.max_solution}, " \
-               f"owner_id : {self.owner_id}> "
+               f"owner_id : {self.owner_id}"

@@ -9,7 +9,7 @@ from utils import get_current_user
 from crud import get_items, create_user_maze
 from database import get_db
 
-from schemas import UserSchema, ItemSchema, MazeConfigurationSchema
+from schemas import UserSchema, ItemSchema, MazeConfigurationCreateSchema
 
 from fastapi import APIRouter
 
@@ -23,19 +23,24 @@ mazes_router = APIRouter(
         )
 
 
-@mazes_router.post("/create_maze", response_model=ItemSchema)
+@mazes_router.post("/create_maze", response_model=MazeConfigurationCreateSchema)
 def create_maze_for_user_only_if_authenticated(
-        maze: MazeConfigurationSchema,
+        maze: MazeConfigurationCreateSchema,
         db: Session = Depends(get_db),
         current_user: UserSchema = Depends(get_current_user)
         ) :
     user_id = current_user.id
 
-    return create_user_maze(
+    try:
+        created_result = create_user_maze(
         db=db,
         maze_item=maze,
         user_id=user_id
         )
+        return created_result
+
+    except Exception:
+        print(f' full of errors somewhere')
 
 
 '''

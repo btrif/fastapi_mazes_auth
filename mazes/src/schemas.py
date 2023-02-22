@@ -228,9 +228,9 @@ https://docs.pydantic.dev/usage/validators/
 '''
 
 
-class MazeConfigurationSchema(BaseModel) :
+class MazeConfigurationCreateSchema(BaseModel) :
     grid_size: str
-    walls: List[ str ]
+    walls: str
     entrance: str
 
 
@@ -248,41 +248,42 @@ class MazeConfigurationSchema(BaseModel) :
 
         return grid_size
 
-
-    @validator('walls')
-    def check_at_least_one_wall(cls, walls) :
-        assert len(walls) >= 1, 'there must be at least one valid wall of the form C3'
-        return ', '.join(walls)
-
-
-    @root_validator
-    def check_walls_are_within_grid_size(cls, walls_in_grid) :
-        '''
-            - If we define  a grid of 4x4 where we have elements from A, B, C, D --> 1, 2, 3, 4:
-                - we must have elements from A1 to D4
-                - we cannot have elements like A5, E2, B6, ...
-         '''
-
-
-        walls = walls_in_grid.get('walls').split(', ')      # because function check_at_least_one_wall changed walls to string
-        print(f'walls list :  {walls}')
-        grid_size = walls_in_grid.get('grid_size')
-        rows_size, cols_size = map(int, grid_size.split('x'))
-        # print(f"rows, cols = {rows_size}  {cols_size}")
-        col_letters = set(string.ascii_uppercase[ :cols_size ])
-        # print(f"cols_letters : {col_letters}")
-
-        # Check columns ( which are letters )
-        walls_letters = {letter[ :1 ] for letter in walls}
-        assert len(walls_letters - col_letters) == 0, f"{walls_letters - col_letters} letters are not allowed"
-        print(f"walls_letters :  {walls_letters}")
-
-        # Check rows (which are numbers )
-        walls_numbers = {int(nr[ 1 : ]) for nr in walls}
-        print(f"walls_numbers : {walls_numbers}")
-        assert max(walls_numbers) <= rows_size, f"{walls_numbers - set(range(1, rows_size + 1))}  numbers are too big"
-
-        return walls_in_grid
+    #
+    # @validator('walls')
+    # def check_at_least_one_wall(cls, walls) :
+    #     # clean-up spaces :
+    #     walls = walls.replace(' ', '')
+    #     assert len(walls.split(",")) >= 1, 'there must be at least one valid wall of the form C3'
+    #     return walls
+    #
+    #
+    # @root_validator
+    # def check_walls_are_within_grid_size(cls, walls_in_grid) :
+    #     '''
+    #         - If we define  a grid of 4x4 where we have elements from A, B, C, D --> 1, 2, 3, 4:
+    #             - we must have elements from A1 to D4
+    #             - we cannot have elements like A5, E2, B6, ...
+    #      '''
+    #
+    #     walls = walls_in_grid.get('walls')
+    #     print(f'walls_list :  {walls}   {type(walls)}')
+    #     grid_size = walls_in_grid.get('grid_size')
+    #     rows_size, cols_size = map(int, grid_size.split('x'))
+    #     print(f"rows, cols = {rows_size}  {cols_size}")
+    #     col_letters = set(string.ascii_uppercase[ :cols_size ])
+    #     print(f"cols_letters : {sorted(col_letters)}")
+    #
+    #     # Check columns ( which are letters )
+    #     walls_letters = {letter[ :1 ] for letter in walls.split(',')}
+    #     assert len(walls_letters - col_letters) == 0, f"{walls_letters - col_letters} letters are not allowed"
+    #     print(f"walls_letters :  {walls_letters}")
+    #
+    #     # Check rows (which are numbers )
+    #     walls_numbers = {int(nr[ 1 : ]) for nr in walls.split(',')}
+    #     print(f"walls_numbers : {walls_numbers}")
+    #     assert max(walls_numbers) <= rows_size, f"{walls_numbers - set(range(1, rows_size + 1))}  numbers are too big"
+    #
+    #     return walls_in_grid
 
 
     @validator('entrance')
@@ -301,9 +302,9 @@ class MazeConfigurationSchema(BaseModel) :
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 if __name__ == '__main__' :
-    maze_config = MazeConfigurationSchema(
+    maze_config = MazeConfigurationCreateSchema(
             grid_size='  14 x  6        ',
-            walls=[ 'B2', 'C3', 'A4', 'A5', 'B6', 'B13', 'C14', 'E1', 'F7', 'A14' ],
+            walls='B2, C3, A4, A5, B6, B13, C14, E1, F7, A14',
             entrance='C1'
             )
     print(f"maze_config  : {maze_config}     ")
