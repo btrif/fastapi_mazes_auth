@@ -11,7 +11,7 @@ from fastapi.responses import RedirectResponse
 from crud import get_user, get_user_by_email, get_hashed_password, verify_password
 from database import get_db, Base, db_engine
 
-from schemas import oauth2_scheme, UserSchema, TokenSchema, UserCreateSchema, ItemCreateSchema, ItemSchema
+from schemas import oauth2_scheme, UserSchema, TokenSchema
 
 from utils import get_current_user, ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token
 

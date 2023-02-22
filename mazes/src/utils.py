@@ -101,24 +101,24 @@ async def get_current_user(
             )
     try :
         payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[ ALGORITHM ])
-        print(f"payload : {payload}")
+        print(f"credentials_exception -> payload : {payload}")
         username: str = payload.get("sub")
-        print(f"spooky username :  {username}")
+        print(f"credentials_exception -> spooky username :  {username}")
 
         if username is None :
             raise credentials_exception
 
         token_data = TokenDataSchema(username=username)
-        print(f"token_data : {token_data}")
+        print(f"get_current_user -> token_data : {token_data}")
     except JWTError :
-        print(f"first {credentials_exception}")
+        print(f"get_current_user -> credentials_exception {credentials_exception}")
         raise credentials_exception
 
     # Get user from DB
     user = get_user(db, token_data.username)
-    print(f"user_from_DB : {user}")
+    print(f"get_current_user -> user_from_DB : {user}")
     if user is None :
-        print(f"second {credentials_exception}")
+        print(f"credentials_exception  second {credentials_exception}")
         raise credentials_exception
 
     return user

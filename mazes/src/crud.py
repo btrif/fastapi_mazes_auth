@@ -72,7 +72,7 @@ Item(**item.dict(), owner_id=user_id)
 from sqlalchemy.orm import Session
 
 from models import User, Item, Maze
-from schemas import UserCreateSchema, ItemCreateSchema, UserSchema, MazeConfigurationCreateSchema
+from schemas import UserCreateSchema, ItemCreateSchema, UserSchema, MazeCreateSchema, MazeBaseSchema
 
 from passlib.context import CryptContext
 
@@ -135,19 +135,14 @@ def create_user_item(db: Session, item: ItemCreateSchema, user_id: int) :
     return db_item
 
 
-
-
-
-def create_user_maze(db: Session, maze_item: MazeConfigurationCreateSchema, user_id: int) :
+def create_user_maze(db: Session, maze_item: MazeCreateSchema, user_id: int) :
     print(f"create_user_maze   :   item = {maze_item}")
-    db_item = Maze(**maze_item.dict(),
-            # grid_size=maze_item.grid_size,
-            # entrance=maze_item.entrance,
-            # walls=maze_item.walls,
+    db_maze = Maze(
+            **maze_item.dict(),
             owner_id=user_id,
             )
-    print(f"create_user_maze    :   db_item = {db_item}")
-    db.add(db_item)
+    print(f"create_user_maze    :   db_maze = {db_maze}")
+    db.add(db_maze)
     db.commit()
-    db.refresh(db_item)
-    return db_item
+    db.refresh(db_maze)
+    return db_maze

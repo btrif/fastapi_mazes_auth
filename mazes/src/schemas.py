@@ -190,37 +190,6 @@ class ItemSchema(ItemBaseSchema) :
         orm_mode = True
 
 
-###########         User Schema        ############
-
-class UserBaseSchema(BaseModel) :
-    username: str
-
-
-class UserCreateSchema(UserBaseSchema) :
-    email: str
-    password: str
-
-
-class UserSchema(UserBaseSchema) :
-    id: int
-    is_active: bool
-    items: list[ ItemSchema ] = [ ]
-
-    class Config :
-        orm_mode = True
-
-
-###########         Token Schema        ############
-
-class TokenSchema(BaseModel) :
-    access_token: str
-    token_type: str
-
-
-class TokenDataSchema(BaseModel) :
-    username: Union[ str, None ] = None
-
-
 ###########         Maze Schemas        ############
 '''
 We will use validators to check our schemas
@@ -228,11 +197,21 @@ https://docs.pydantic.dev/usage/validators/
 '''
 
 
-class MazeConfigurationCreateSchema(BaseModel) :
+class MazeBaseSchema(BaseModel) :
     grid_size: str
     walls: str
     entrance: str
 
+
+class MazeSchema(MazeBaseSchema) :
+    id: int
+    owner_id: int
+
+    class Config :
+        orm_mode = True
+
+
+class MazeCreateSchema(MazeBaseSchema) :
 
     @validator('grid_size')
     def check_grid_size(cls, grid_size) :
@@ -244,7 +223,8 @@ class MazeConfigurationCreateSchema(BaseModel) :
             rows, cols = map(int, grid_size.split('x'))
         except ValueError as ve :
             print("The rows and cols must be numbers")
-            print(ve)
+            print(f"check_grid_size exception :  {ve}")
+            raise
 
         return grid_size
 
@@ -252,11 +232,12 @@ class MazeConfigurationCreateSchema(BaseModel) :
     # @validator('walls')
     # def check_at_least_one_wall(cls, walls) :
     #     # clean-up spaces :
-    #     walls = walls.replace(' ', '')
-    #     assert len(walls.split(",")) >= 1, 'there must be at least one valid wall of the form C3'
+    #     walls_no_spaces = walls.replace(' ', '')
+    #     print(f"validator walls :    walls_no_spaces : {walls_no_spaces}")
+    #     print(f"validator walls :    len walls_no_spaces 2 : {len(walls_no_spaces)}")
+    #     assert len(walls_no_spaces.split(",")) >= 1, 'there must be at least one valid wall of the form C3'
     #     return walls
-    #
-    #
+
     # @root_validator
     # def check_walls_are_within_grid_size(cls, walls_in_grid) :
     #     '''
@@ -285,27 +266,58 @@ class MazeConfigurationCreateSchema(BaseModel) :
     #
     #     return walls_in_grid
 
+    # @validator('entrance')
+    # def check_entrance(cls, entrance) :
+    #     '''
+    #     - We want to make sure that we always have an entrance in the TOP ROW
+    #     - Valid entrance should be only one letter [A-Z] followed by digit 1 : A1, T1, Z1.
+    #     - Invalid entrances : A2, Z8, AB1, XY1,
+    #     '''
+    #     assert entrance[ :1 ] in string.ascii_letters
+    #     assert entrance[ 1 : ] in string.digits[ 1 ]
+    #     return entrance
 
-    @validator('entrance')
-    def check_entrance(cls, entrance) :
-        '''
-        - We want to make sure that we always have an entrance in the TOP ROW
-        - Valid entrance should be only one letter [A-Z] followed by digit 1 : A1, T1, Z1.
-        - Invalid entrances : A2, Z8, AB1, XY1,
-        '''
-        assert entrance[ :1 ] in string.ascii_letters
-        assert entrance[ 1 : ] in string.digits[ 1 ]
-        return entrance
+
+###########         User Schema        ############
+
+class UserBaseSchema(BaseModel) :
+    username: str
+
+
+class UserCreateSchema(UserBaseSchema) :
+    email: str
+    password: str
+
+
+class UserSchema(UserBaseSchema) :
+    id: int
+    is_active: bool
+    items: list[ ItemSchema ] = [ ]
+    mazes: list[ MazeSchema ] = [ ]
+
+    class Config :
+        orm_mode = True
+
+
+###########         Token Schema        ############
+
+class TokenSchema(BaseModel) :
+    access_token: str
+    token_type: str
+
+
+class TokenDataSchema(BaseModel) :
+    username: Union[ str, None ] = None
 
 
 ###### First condition required for Token Authorize button           #######
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 if __name__ == '__main__' :
-    maze_config = MazeConfigurationCreateSchema(
-            grid_size='  14 x  6        ',
+    maze_config = MazeCreateSchema(
+            grid_size = " 9 x -   11",
             walls='B2, C3, A4, A5, B6, B13, C14, E1, F7, A14',
-            entrance='C1'
+            entrance='AC1 B3'
             )
     print(f"maze_config  : {maze_config}     ")
     print(f"walls type  : {type(maze_config.walls)}     ")

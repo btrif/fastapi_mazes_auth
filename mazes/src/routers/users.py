@@ -73,7 +73,7 @@ async def hello_my_user_only_if_authenticated(current_user: UserSchema = Depends
             "Today is" : date,
             "Time is" : time,
             "processor" : processor,
-            "and you have the following items : " : current_user.items,
+            "and you have the following mazes : " : current_user.mazes,
             }
         }
 

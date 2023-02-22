@@ -7,7 +7,7 @@ from crud import get_hashed_password, verify_password, get_user_by_email, create
     create_user_maze
 from database import db_engine
 
-from schemas import UserCreateSchema, ItemCreateSchema, MazeConfigurationCreateSchema
+from schemas import UserCreateSchema, ItemCreateSchema, MazeCreateSchema
 
 from sqlalchemy.orm import sessionmaker
 
@@ -130,7 +130,7 @@ def test_create_user_maze() :
     entrance = ''.join([string.ascii_uppercase[random.randint(1, test_col_size)] , '1'])
     print(f"entrance : {entrance}")
 
-    test_maze_configuration = MazeConfigurationCreateSchema(
+    test_maze_configuration = MazeCreateSchema(
             grid_size=grid_size,
             walls=walls,
             entrance=entrance
