@@ -60,11 +60,13 @@ bytes or floats will be coerced to ints if possible; otherwise an exception will
 - signup_ts is a datetime field which is not required (and takes the value None if it's not supplied).
 pydantic will process either a unix timestamp int (e.g. 1496498400) or a string representing the date & time.
 
-- friends uses Python's typing system, and requires a list of integers. As with id, integer-like objects will be converted to integers.
+- friends uses Python's typing system, and requires a list of integers. As with id, integer-like objects will be
+converted to integers.
 
 
 Create initial Pydantic models / schemas
-Create an ItemBase and UserBase Pydantic models (or let's say "schemas") to have common attributes while creating or reading data.
+Create an ItemBase and UserBase Pydantic models (or let's say "schemas") to have common attributes while creating or
+reading data.
 And create an ItemCreate and UserCreate that inherit from them (so they will have the same attributes), 
 plus any additional data (attributes) needed for creation.
 So, the user will also have a password when creating it.
@@ -114,25 +116,29 @@ id = data["id"]
 it will also try to get it from an attribute, as in:
 
 id = data.id
-And with this, the Pydantic model is compatible with ORMs, and you can just declare it in the response_model argument in your path operations.
+And with this, the Pydantic model is compatible with ORMs, and you can just declare it in the response_model argument
+in your path operations.
 
 You will be able to return a database model and it will read the data from it.
 
 = Technical Details about ORM mode
 SQLAlchemy and many others are by default "lazy loading".
 
-That means, for example, that they don't fetch the data for relationships from the database unless you try to access the attribute that would contain that data.
+That means, for example, that they don't fetch the data for relationships from the database unless you try to access
+the attribute that would contain that data.
 
 For example, accessing the attribute items:
 
 current_user.items
 would make SQLAlchemy go to the items table and get the items for this user, but not before.
 
-Without orm_mode, if you returned a SQLAlchemy model from your path operation, it wouldn't include the relationship data.
+Without orm_mode, if you returned a SQLAlchemy model from your path operation, it wouldn't include the relationship
+data.
 
 Even if you declared those relationships in your Pydantic models.
 
-But with ORM mode, as Pydantic itself will try to access the data it needs from attributes (instead of assuming a dict), 
+But with ORM mode, as Pydantic itself will try to access the data it needs from attributes (instead of assuming a
+dict),
 you can declare the specific data you want to return and it will be able to go and get it, even from ORMs.
 
 
@@ -157,64 +163,148 @@ To generate a secure random secret key use the command:
 
 
 '''
+import string
 
-
-
-from typing import Union
+from typing import Union, List
 
 from fastapi.security import OAuth2PasswordBearer
-from pydantic import BaseModel
+from pydantic import BaseModel, validator, ValidationError, root_validator
 
 
 ###########         Item Schema        ############
 
-class ItemBaseSchema(BaseModel):
+class ItemBaseSchema(BaseModel) :
     title: str
-    description: Union[str, None] = None
+    description: Union[ str, None ] = None
 
 
-class ItemCreateSchema(ItemBaseSchema):
+class ItemCreateSchema(ItemBaseSchema) :
     pass
 
 
-class ItemSchema(ItemBaseSchema):
+class ItemSchema(ItemBaseSchema) :
     id: int
     owner_id: int
 
-    class Config:
+    class Config :
         orm_mode = True
 
 
 ###########         User Schema        ############
 
-class UserBaseSchema(BaseModel):
+class UserBaseSchema(BaseModel) :
     username: str
 
 
-class UserCreateSchema(UserBaseSchema):
+class UserCreateSchema(UserBaseSchema) :
     email: str
     password: str
 
 
-class UserSchema(UserBaseSchema):
+class UserSchema(UserBaseSchema) :
     id: int
     is_active: bool
-    items: list[ItemSchema ] = []
+    items: list[ ItemSchema ] = [ ]
 
-    class Config:
+    class Config :
         orm_mode = True
 
 
 ###########         Token Schema        ############
 
-class TokenSchema(BaseModel):
+class TokenSchema(BaseModel) :
     access_token: str
     token_type: str
 
 
-class TokenDataSchema(BaseModel):
-    username: Union[str, None] = None
+class TokenDataSchema(BaseModel) :
+    username: Union[ str, None ] = None
+
+
+###########         Maze Schemas        ############
+'''
+We will use validators to check our schemas
+https://docs.pydantic.dev/usage/validators/
+'''
+
+
+class MazeConfigurationSchema(BaseModel) :
+    grid_size: str
+    walls: List[ str ]
+    entrance: str
+
+
+    @validator('grid_size')
+    def check_grid_size(cls, grid_size) :
+        assert 'x' in grid_size, 'x letter must be the separator between two numbers'
+        assert grid_size.count('x') == 1, 'You missed typed. Only one x is allowed'
+        grid_size = grid_size.replace(' ', '')
+
+        try :
+            rows, cols = map(int, grid_size.split('x'))
+        except ValueError as ve :
+            print("The rows and cols must be numbers")
+            print(ve)
+
+        return grid_size
+
+
+    @validator('walls')
+    def check_at_least_one_wall(cls, walls) :
+        assert len(walls) >= 1, 'there must be at least one valid wall of the form C3'
+        return ', '.join(walls)
+
+
+    @root_validator
+    def check_walls_are_within_grid_size(cls, walls_in_grid) :
+        '''
+            - If we define  a grid of 4x4 where we have elements from A, B, C, D --> 1, 2, 3, 4:
+                - we must have elements from A1 to D4
+                - we cannot have elements like A5, E2, B6, ...
+         '''
+
+
+        walls = walls_in_grid.get('walls').split(', ')      # because function check_at_least_one_wall changed walls to string
+        print(f'walls list :  {walls}')
+        grid_size = walls_in_grid.get('grid_size')
+        rows_size, cols_size = map(int, grid_size.split('x'))
+        # print(f"rows, cols = {rows_size}  {cols_size}")
+        col_letters = set(string.ascii_uppercase[ :cols_size ])
+        # print(f"cols_letters : {col_letters}")
+
+        # Check columns ( which are letters )
+        walls_letters = {letter[ :1 ] for letter in walls}
+        assert len(walls_letters - col_letters) == 0, f"{walls_letters - col_letters} letters are not allowed"
+        print(f"walls_letters :  {walls_letters}")
+
+        # Check rows (which are numbers )
+        walls_numbers = {int(nr[ 1 : ]) for nr in walls}
+        print(f"walls_numbers : {walls_numbers}")
+        assert max(walls_numbers) <= rows_size, f"{walls_numbers - set(range(1, rows_size + 1))}  numbers are too big"
+
+        return walls_in_grid
+
+
+    @validator('entrance')
+    def check_entrance(cls, entrance) :
+        '''
+        - We want to make sure that we always have an entrance in the TOP ROW
+        - Valid entrance should be only one letter [A-Z] followed by digit 1 : A1, T1, Z1.
+        - Invalid entrances : A2, Z8, AB1, XY1,
+        '''
+        assert entrance[ :1 ] in string.ascii_letters
+        assert entrance[ 1 : ] in string.digits[ 1 ]
+        return entrance
 
 
 ###### First condition required for Token Authorize button           #######
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+if __name__ == '__main__' :
+    maze_config = MazeConfigurationSchema(
+            grid_size='  14 x  6        ',
+            walls=[ 'B2', 'C3', 'A4', 'A5', 'B6', 'B13', 'C14', 'E1', 'F7', 'A14' ],
+            entrance='C1'
+            )
+    print(f"maze_config  : {maze_config}     ")
+    print(f"walls type  : {type(maze_config.walls)}     ")

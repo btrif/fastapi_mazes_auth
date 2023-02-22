@@ -69,15 +69,15 @@ Item(**item.dict(), owner_id=user_id)
 
 '''
 
-
-
 from sqlalchemy.orm import Session
 
-from models import User, Item
-from schemas import UserCreateSchema, ItemCreateSchema, UserSchema
+from models import User, Item, Maze
+from schemas import UserCreateSchema, ItemCreateSchema, UserSchema, MazeConfigurationSchema
 
 from passlib.context import CryptContext
+
 pwd_context = CryptContext(schemes=[ "bcrypt" ], deprecated="auto")
+
 
 def get_hashed_password(password: str) -> str :
     return pwd_context.hash(password)
@@ -85,7 +85,6 @@ def get_hashed_password(password: str) -> str :
 
 def verify_password(plain_password: str, hashed_password: str) -> bool :
     return pwd_context.verify(plain_password, hashed_password)
-
 
 
 def get_user(db: Session, user_name: str) :
@@ -116,16 +115,12 @@ def create_user(db: Session, user: UserCreateSchema) :
 
 
 def delete_user(db: Session, email: str) :
-
     db_user = get_user_by_email(db, email)
     print(f"db_user from delete_user in crud : {db_user}")
 
     db.delete(db_user)
     db.commit()
     return db_user
-
-
-
 
 
 def get_items(db: Session, skip: int = 0, limit: int = 100) :
@@ -140,4 +135,17 @@ def create_user_item(db: Session, item: ItemCreateSchema, user_id: int) :
     return db_item
 
 
+def create_user_maze(db: Session, maze_item: MazeConfigurationSchema, user_id: int) :
+    print(f"create_user_maze   :   item = {maze_item}")
+    db_item = Maze(
+            grid_size=maze_item.grid_size,
+            entrance=maze_item.entrance,
+            walls=maze_item.walls,
+            owner_id=user_id,
 
+            )
+    print(f"create_user_maze    :   db_item = {db_item}")
+    db.add(db_item)
+    db.commit()
+    db.refresh(db_item)
+    return db_item

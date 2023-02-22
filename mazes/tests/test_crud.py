@@ -3,10 +3,11 @@ import random
 import string
 
 import models
-from crud import get_hashed_password, verify_password, get_user_by_email, create_user, delete_user, create_user_item
+from crud import get_hashed_password, verify_password, get_user_by_email, create_user, delete_user, create_user_item, \
+    create_user_maze
 from database import db_engine
 
-from schemas import UserCreateSchema, ItemCreateSchema
+from schemas import UserCreateSchema, ItemCreateSchema, MazeConfigurationSchema
 
 from sqlalchemy.orm import sessionmaker
 
@@ -107,3 +108,23 @@ def test_create_user_item() :
 
     assert created_result.title is not None
     assert created_result.description is not None
+
+
+def test_create_user_maze() :
+    # grid_size :  rows x cols <=> numbers x letters
+    grid_size = f"   {random.randint(3, 34)}   x  {random.randint(3, 26)}        "
+
+    walls = [ "B2", "C3", "A4", "A5", "B6", "B13", "C14", "E1", "F7", "A14" ]
+    entrance = "C1"
+
+    test_maze_configuration = MazeConfigurationSchema(
+            grid_size=grid_size,
+            walls=walls,
+            entrance=entrance
+            )
+    print(f"\ntest_maze_configuration  : \n{test_maze_configuration}     ")
+
+    user_id = random.randint(1, 7)
+    created_maze_result = create_user_maze(current_test_session, test_maze_configuration, user_id)
+
+    print(f"maze_creation_result : \n{created_maze_result}")

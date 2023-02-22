@@ -9,20 +9,26 @@ from sqlalchemy.orm import Session
 from fastapi.responses import RedirectResponse
 
 from crud import get_user, get_user_by_email, get_hashed_password, verify_password
-from database import get_db
-
+from database import get_db, Base, db_engine
 
 from schemas import oauth2_scheme, UserSchema, TokenSchema, UserCreateSchema, ItemCreateSchema, ItemSchema
 
 from utils import get_current_user, ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token
 
+
+# creates all the tables into the database; will not attempt to recreate tables already
+#         present in the target database
+Base.metadata.create_all(bind=db_engine)
+
+# STARTS THE WHOLE APPLICATION
 mazes_app = FastAPI()
 
-from routers import users, items
+from routers import users, items, mazes
 import admin
 
 mazes_app.include_router(users.users_router)
-mazes_app.include_router(items.items_router)
+mazes_app.include_router(mazes.mazes_router)
+
 mazes_app.include_router(
         admin.router_admin,
         prefix="/admin",
@@ -30,7 +36,7 @@ mazes_app.include_router(
         dependencies=[Depends(TokenSchema)],
         responses={418: {"description": "I'm a teapot"}},
         )
-
+mazes_app.include_router(items.items_router)
 
 
 '''

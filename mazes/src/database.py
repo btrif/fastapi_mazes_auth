@@ -65,7 +65,7 @@ so there's no need for that default mechanism.
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
-
+from sqlalchemy.orm import Session
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///../mazes_app.db"
 # SQLALCHEMY_DATABASE_URL = "postgresql://user:password@postgresserver/db"
@@ -76,10 +76,17 @@ db_engine = create_engine(
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=db_engine)
 
-# creates all the tables into the database; will not attempt to recreate tables already
-#         present in the target database
+
+# Construct a base class for declarative class definitions.
+#
+# The new base class will be given a metaclass that produces
+# appropriate :class:`~sqlalchemy.schema.Table` objects and makes
+# the appropriate :class:`_orm.Mapper` calls based on the
+# information provided declaratively in the class and any subclasses
+# of the class.
 Base = declarative_base()
-Base.metadata.create_all(bind=db_engine)
+
+
 
 
 # Dependency

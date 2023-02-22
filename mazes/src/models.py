@@ -56,7 +56,7 @@ It will use the owner_id attribute/column with its foreign key to know which rec
 https://docs.sqlalchemy.org/en/20/core/constraints.html
 '''
 
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 from database import Base
 
@@ -70,7 +70,9 @@ class User(Base) :
     hashed_password = Column(String)
     is_active = Column(Boolean, default=True)
 
+    # not fields, but relationships
     items = relationship("Item", back_populates="owner")
+    mazes = relationship("Maze", back_populates="owner")
 
 
     def __repr__(self) :
@@ -86,6 +88,7 @@ class Item(Base) :
     description = Column(String, index=True)
     owner_id = Column(Integer, ForeignKey("users.id"))
 
+    # Relationship with users table
     owner = relationship("User", back_populates="items")
 
 
@@ -100,17 +103,24 @@ class Maze(Base) :
     __tablename__ = "mazes"
 
     id = Column(Integer, primary_key=True, index=True)
+    # grid_size = Column(String)
     grid_size = Column(String(9))
+    # entrance = Column(String)
     entrance = Column(String(5))
-    walls = Column(String(512))
-    min_solution = Column(String(512))
-    max_solution = Column(String(512))
+    # walls = Column(String)
+    walls = Column(Text(512))
+    # min_solution = Column(String, default=None)
+    min_solution = Column(String(512), default=None)
+    # max_solution = Column(String, default=None)
+    max_solution = Column(String(512), default=None)
     owner_id = Column(Integer, ForeignKey("users.id"))
 
-    owner = relationship("User", back_populates="items")
+    # Relationship with users table
+    owner = relationship("User", back_populates="mazes")
 
 
     def __repr__(self) :
-        return f"< id : {self.id},  user_id : {self.user_id},  gridSize : {self.gridSize},  " \
-               f"entrance : {self.entrance}, walls : {self.walls}  " \
-               f"min_solution : {self.min_solution}  max_solution : {self.max_solution} > "
+        return f"< id : {self.id},  grid_size : {self.grid_size},  " \
+               f"entrance : {self.entrance}, walls : {self.walls}, " \
+               f"min_solution : {self.min_solution},  max_solution : {self.max_solution}, " \
+               f"owner_id : {self.owner_id}> "

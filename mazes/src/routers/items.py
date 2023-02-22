@@ -1,18 +1,13 @@
 #  Created by btrif Trif on 21-02-2023 , 6:15 PM.
 
-
-from fastapi import Depends
+from fastapi import Depends, APIRouter
 from sqlalchemy.orm import Session
 
 from utils import get_current_user
-
 from crud import create_user_item, get_items
 from database import get_db
-
 from schemas import UserSchema, ItemCreateSchema, ItemSchema
 
-from fastapi import APIRouter
-items_router = APIRouter()
 
 items_router = APIRouter(
         prefix="",
