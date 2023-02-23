@@ -77,7 +77,7 @@ class User(Base) :
 
     def __repr__(self) :
         return f"id: {self.id}, username: {self.username}, email: {self.email}, is_active: {self.is_active}, " \
-               f"items: {self.items} "
+               f"mazes: {self.mazes},  items: {self.items},  "
 
 
 class Item(Base) :

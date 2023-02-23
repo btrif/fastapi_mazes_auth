@@ -1,19 +1,21 @@
 #  Created by btrif Trif on 31-01-2023 , 3:56 PM.
 
-from datetime import timedelta, datetime
+from datetime import timedelta
+import time
+from typing import Optional
 
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordRequestForm
 
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, Request, Query
 from sqlalchemy.orm import Session
 from fastapi.responses import RedirectResponse
 
-from crud import get_user, get_user_by_email, get_hashed_password, verify_password
+from crud import get_user, get_hashed_password, verify_password
 from database import get_db, Base, db_engine
 
-from schemas import oauth2_scheme, UserSchema, TokenSchema
+from schemas import TokenSchema
 
-from utils import get_current_user, ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token
+from utils import ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token
 
 
 # creates all the tables into the database; will not attempt to recreate tables already
@@ -23,20 +25,20 @@ Base.metadata.create_all(bind=db_engine)
 # STARTS THE WHOLE APPLICATION
 mazes_app = FastAPI()
 
-from routers import users, items, mazes
-import admin
+from routers import users, items, mazes, admin
 
 mazes_app.include_router(users.users_router)
 mazes_app.include_router(mazes.mazes_router)
 
-mazes_app.include_router(
-        admin.router_admin,
-        prefix="/admin",
-        tags=["admin"],
-        dependencies=[Depends(TokenSchema)],
-        responses={418: {"description": "I'm a teapot"}},
-        )
+# mazes_app.include_router(
+#         admin.router_admin,
+#         prefix="/admin",
+#         tags=["admin"],
+#         dependencies=[Depends(TokenSchema)],
+#         responses={418: {"description": "I'm a teapot"}},
+#         )
 mazes_app.include_router(items.items_router)
+mazes_app.include_router(admin.admin_router)
 
 
 '''
@@ -159,10 +161,34 @@ async def login(
 
 
 
+'''
+@mazes_app.middleware("http")
+async def add_process_time_header(request: Request, call_next):
+    start_time = time.time()
+    response = await call_next(request)
+    process_time = time.time() - start_time
+    response.headers["X-Process-Time"] = str(process_time)
+    return response
+
+'''
+
+@mazes_app.get("/books")
+def read_books(test: Optional[str] = Query(None, min_length=3, max_length=10, regex="^testquery$")):
+    '''
+    Basically, in the above snippet, error response is triggered if the query parameter has value other than testquery.
+    '''
+    results = {"books": [{"book_name": "The Great Hunt"}, {"book_name": "The Dragon Reborn"}]}
+
+    if test:
+        results.update({"test": test})
+
+    return results
+
 # Simple redirection to /docs
 @mazes_app.get('/', response_class=RedirectResponse, include_in_schema=False)
 async def docs() :
     return RedirectResponse(url='/docs')
+
 
 
 if __name__ == "__main__" :

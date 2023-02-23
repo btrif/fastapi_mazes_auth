@@ -15,7 +15,7 @@ from schemas import TokenDataSchema, TokenSchema, oauth2_scheme
 from crud import get_user, verify_password
 from database import get_db
 
-ACCESS_TOKEN_EXPIRE_MINUTES = 30  # 30 minutes
+ACCESS_TOKEN_EXPIRE_MINUTES = 300  # 30 minutes
 REFRESH_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
 ALGORITHM = "HS256"
 JWT_SECRET_KEY = "alpha_Beta_gamma_delta_abcdef_0123456789"  # should be kept secret

@@ -164,9 +164,12 @@ To generate a secure random secret key use the command:
 
 '''
 import string
+import re
 
 from typing import Union, List
 
+
+from fastapi.exceptions import HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel, validator, ValidationError, root_validator
 
@@ -214,29 +217,47 @@ class MazeSchema(MazeBaseSchema) :
 class MazeCreateSchema(MazeBaseSchema) :
 
     @validator('grid_size')
-    def check_grid_size(cls, grid_size) :
-        assert 'x' in grid_size, 'x letter must be the separator between two numbers'
-        assert grid_size.count('x') == 1, 'You missed typed. Only one x is allowed'
-        grid_size = grid_size.replace(' ', '')
-
-        try :
-            rows, cols = map(int, grid_size.split('x'))
-        except ValueError as ve :
-            print("The rows and cols must be numbers")
-            print(f"check_grid_size exception :  {ve}")
-            raise
+    def validate_grid(cls, grid_size) :
+        ''' method to validate grid'''
+        # 33x26
+        import re
+        grid_pattern = re.compile("^[0-9]{1,2}x[0-9]{1,2}$")            # 10x13
+        match_grid = re.match(grid_pattern, grid_size)
+        print(f"validate_grid  match_grid : {match_grid}")
+        if not match_grid :
+            raise HTTPException(f"ValidationError : gridSize must be of the form : 32x26 and no spaces. Example : 9x9")
 
         return grid_size
 
-    #
-    # @validator('walls')
-    # def check_at_least_one_wall(cls, walls) :
-    #     # clean-up spaces :
-    #     walls_no_spaces = walls.replace(' ', '')
-    #     print(f"validator walls :    walls_no_spaces : {walls_no_spaces}")
-    #     print(f"validator walls :    len walls_no_spaces 2 : {len(walls_no_spaces)}")
-    #     assert len(walls_no_spaces.split(",")) >= 1, 'there must be at least one valid wall of the form C3'
-    #     return walls
+
+    @validator('grid_size')
+    def check_grid_size(cls, grid_size) :
+        ''' Grid size limitation'''
+        rows, cols = map(int, grid_size.split('x'))
+        if (rows > 32 or cols > 26):
+            raise HTTPException(f"ValidationError : gridSize values max rows = 32 and max cols = 26")
+
+        return grid_size
+
+
+    @validator('walls')
+    def check_at_least_one_wall(cls, walls) :
+
+        # first group [A-Z]\d{1,2} matches only :  C99
+        # second group is greedy and matches:       ,A2,B13,E7,D2,B5      . That is why they are separated
+        walls_pattern = "^[A-Z]\d{1,2}(,[A-Z]\d{1,2})*$"
+        match_walls = re.match(walls_pattern, walls)
+        print(f"validate_grid  match_walls : {match_walls}")
+        if not match_walls :
+            raise HTTPException(f"ValidationError : Walls must have no spaces and must be separated by comma. A valid group looks like : "
+                                f"C4,A2,B13,E7,D2,B5 . Please check carefully your walls ")
+
+
+    # walls_no_spaces = walls.replace(' ', '')
+        # print(f"validator walls :    walls_no_spaces : {walls_no_spaces}")
+        # print(f"validator walls :    len walls_no_spaces 2 : {len(walls_no_spaces)}")
+        # assert len(walls_no_spaces.split(",")) >= 1, 'there must be at least one valid wall of the form C3'
+        return walls
 
     # @root_validator
     # def check_walls_are_within_grid_size(cls, walls_in_grid) :
@@ -292,8 +313,8 @@ class UserCreateSchema(UserBaseSchema) :
 class UserSchema(UserBaseSchema) :
     id: int
     is_active: bool
-    items: list[ ItemSchema ] = [ ]
     mazes: list[ MazeSchema ] = [ ]
+    items: list[ ItemSchema ] = [ ]
 
     class Config :
         orm_mode = True
@@ -315,7 +336,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 if __name__ == '__main__' :
     maze_config = MazeCreateSchema(
-            grid_size = " 9 x -   11",
+            grid_size=" 9 x -   11",
             walls='B2, C3, A4, A5, B6, B13, C14, E1, F7, A14',
             entrance='AC1 B3'
             )

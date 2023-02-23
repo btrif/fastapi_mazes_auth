@@ -82,9 +82,9 @@ def test_create_user() :
 
 
 def test_delete_user() :
-    test_email = "biciul@biciul.eu"
+    test_username = "biciul"
 
-    deleted_result = delete_user(current_test_session, test_email)
+    deleted_result = delete_user(current_test_session, test_username)
     print(f"deleted_result = \n{deleted_result}")
 
 

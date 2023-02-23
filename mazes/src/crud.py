@@ -87,7 +87,10 @@ def verify_password(plain_password: str, hashed_password: str) -> bool :
     return pwd_context.verify(plain_password, hashed_password)
 
 
-def get_user(db: Session, user_name: str) :
+def get_user(
+        db: Session,
+        user_name: str
+        ) :
     return db.query(User).filter(User.username == user_name).first()
 
 
@@ -114,8 +117,8 @@ def create_user(db: Session, user: UserCreateSchema) :
     return db_user
 
 
-def delete_user(db: Session, email: str) :
-    db_user = get_user_by_email(db, email)
+def delete_user(db: Session, username: str) :
+    db_user = get_user(db, username)
     print(f"db_user from delete_user in crud : {db_user}")
 
     db.delete(db_user)
@@ -137,10 +140,7 @@ def create_user_item(db: Session, item: ItemCreateSchema, user_id: int) :
 
 def create_user_maze(db: Session, maze_item: MazeCreateSchema, user_id: int) :
     print(f"create_user_maze   :   item = {maze_item}")
-    db_maze = Maze(
-            **maze_item.dict(),
-            owner_id=user_id,
-            )
+    db_maze = Maze(**maze_item.dict(), owner_id=user_id, )
     print(f"create_user_maze    :   db_maze = {db_maze}")
     db.add(db_maze)
     db.commit()

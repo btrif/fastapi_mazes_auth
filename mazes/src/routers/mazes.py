@@ -34,13 +34,14 @@ def create_maze_for_user_only_if_authenticated(
     try:
         created_result = create_user_maze(
         db=db,
-        maze_item=maze,
+        maze_item = maze,
         user_id=user_id
         )
+        print(f"mazes - create_maze_for_user_only_if_authenticated : {created_result}")
         return created_result
 
     except Exception:
-        print(f' full of errors somewhere')
+        print(f'Error.   full of errors somewhere. The data was not written to DB')
 
 
 '''
