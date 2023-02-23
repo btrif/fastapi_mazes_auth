@@ -168,7 +168,6 @@ import re
 
 from typing import Union, List
 
-
 from fastapi.exceptions import HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel, validator, ValidationError, root_validator
@@ -221,11 +220,13 @@ class MazeCreateSchema(MazeBaseSchema) :
         ''' method to validate grid'''
         # 33x26
         import re
-        grid_pattern = re.compile("^[0-9]{1,2}x[0-9]{1,2}$")            # 10x13
+        grid_pattern = re.compile("^[0-9]{1,2}x[0-9]{1,2}$")  # 10x13
         match_grid = re.match(grid_pattern, grid_size)
         print(f"validate_grid  match_grid : {match_grid}")
         if not match_grid :
-            raise HTTPException(f"ValidationError : gridSize must be of the form : 32x26 and no spaces. Example : 9x9")
+            raise HTTPException(f"ValidationError : gridSize must be of the form : 32x26 and no spaces. Example : 9x12")
+
+        assert match_grid, f"ValidationError : grid_size must be of the form : 32x26 and no spaces. Example : 9x12"
 
         return grid_size
 
@@ -234,8 +235,12 @@ class MazeCreateSchema(MazeBaseSchema) :
     def check_grid_size(cls, grid_size) :
         ''' Grid size limitation'''
         rows, cols = map(int, grid_size.split('x'))
-        if (rows > 32 or cols > 26):
-            raise HTTPException(f"ValidationError : gridSize values max rows = 32 and max cols = 26")
+        print(f"grid_size :  rows, cols   {rows, cols}")
+
+        assert (rows <= 32 or cols <= 26), f"ValidationError : grid_size values max rows = 32 and max cols = 26"
+
+        if (rows > 32 or cols > 26) :
+            raise HTTPException(f"ValidationError : grid_size values max rows = 32 and max cols = 26")
 
         return grid_size
 
@@ -248,55 +253,77 @@ class MazeCreateSchema(MazeBaseSchema) :
         walls_pattern = "^[A-Z]\d{1,2}(,[A-Z]\d{1,2})*$"
         match_walls = re.match(walls_pattern, walls)
         print(f"validate_grid  match_walls : {match_walls}")
-        if not match_walls :
-            raise HTTPException(f"ValidationError : Walls must have no spaces and must be separated by comma. A valid group looks like : "
-                                f"C4,A2,B13,E7,D2,B5 . Please check carefully your walls ")
+        # if not match_walls :
+        #     raise HTTPException(f"ValidationError : Walls must have no spaces and must be separated by comma. A
+        #     valid group looks like : "
+        #                         f"C4,A2,B13,E7,D2,B5 . Please check carefully your walls ")
 
+        assert match_walls, f"ValidationError : walls must have no spaces and must be separated by comma. A valid " \
+                            f"group looks like : " \
+                            f"C4,A2,B13,E7,D2,B5 . Please check carefully your walls "
 
-    # walls_no_spaces = walls.replace(' ', '')
-        # print(f"validator walls :    walls_no_spaces : {walls_no_spaces}")
-        # print(f"validator walls :    len walls_no_spaces 2 : {len(walls_no_spaces)}")
-        # assert len(walls_no_spaces.split(",")) >= 1, 'there must be at least one valid wall of the form C3'
         return walls
 
-    # @root_validator
-    # def check_walls_are_within_grid_size(cls, walls_in_grid) :
-    #     '''
-    #         - If we define  a grid of 4x4 where we have elements from A, B, C, D --> 1, 2, 3, 4:
-    #             - we must have elements from A1 to D4
-    #             - we cannot have elements like A5, E2, B6, ...
-    #      '''
-    #
-    #     walls = walls_in_grid.get('walls')
-    #     print(f'walls_list :  {walls}   {type(walls)}')
-    #     grid_size = walls_in_grid.get('grid_size')
-    #     rows_size, cols_size = map(int, grid_size.split('x'))
-    #     print(f"rows, cols = {rows_size}  {cols_size}")
-    #     col_letters = set(string.ascii_uppercase[ :cols_size ])
-    #     print(f"cols_letters : {sorted(col_letters)}")
-    #
-    #     # Check columns ( which are letters )
-    #     walls_letters = {letter[ :1 ] for letter in walls.split(',')}
-    #     assert len(walls_letters - col_letters) == 0, f"{walls_letters - col_letters} letters are not allowed"
-    #     print(f"walls_letters :  {walls_letters}")
-    #
-    #     # Check rows (which are numbers )
-    #     walls_numbers = {int(nr[ 1 : ]) for nr in walls.split(',')}
-    #     print(f"walls_numbers : {walls_numbers}")
-    #     assert max(walls_numbers) <= rows_size, f"{walls_numbers - set(range(1, rows_size + 1))}  numbers are too big"
-    #
-    #     return walls_in_grid
 
-    # @validator('entrance')
-    # def check_entrance(cls, entrance) :
-    #     '''
-    #     - We want to make sure that we always have an entrance in the TOP ROW
-    #     - Valid entrance should be only one letter [A-Z] followed by digit 1 : A1, T1, Z1.
-    #     - Invalid entrances : A2, Z8, AB1, XY1,
-    #     '''
-    #     assert entrance[ :1 ] in string.ascii_letters
-    #     assert entrance[ 1 : ] in string.digits[ 1 ]
-    #     return entrance
+    @root_validator
+    def check_walls_are_within_grid_size(cls, walls_in_grid) :
+        '''     Concrete example :
+            - If we define  a grid of 4x4 where we have elements from A, B, C, D --> 1, 2, 3, 4:
+                - we must have elements from A1 to D4
+                - we cannot have elements like A5, E2, B6, ...
+         '''
+
+        walls = walls_in_grid.get('walls')
+        grid_size = walls_in_grid.get('grid_size')
+        entrance = walls_in_grid.get('entrance')
+        print(f'walls_list :  {walls}   {type(walls)}')
+        print(f'grid_size :  {grid_size}   {type(grid_size)}')
+        assert walls, f"Invalid walls from check_walls_are_within_grid_size"
+        assert grid_size, f"grid_size has not the proper dimensions"
+
+        rows_size, cols_size = map(int, grid_size.split('x'))
+        print(f"rows, cols = {rows_size}  {cols_size}")
+
+        col_letters = set(string.ascii_uppercase[ :cols_size ])
+        print(f"cols_letters : {sorted(col_letters)}")
+
+        ### Check columns ( which are letters )
+        walls_letters = {letter[ :1 ] for letter in walls.split(',')}
+        assert len(
+            walls_letters - col_letters
+            ) == 0, f"{walls_letters - col_letters} within walls Column letters are not allowed"
+        print(f"walls_letters :  {walls_letters}")
+
+        # Check rows (which are numbers )
+        walls_numbers = {int(nr[ 1 : ]) for nr in walls.split(',')}
+        print(f"walls_numbers : {walls_numbers}")
+        assert max(
+            walls_numbers
+            ) <= rows_size, f"{walls_numbers - set(range(1, rows_size + 1))} within walls row numbers are too big. Maximum possible nr is {rows_size}. "
+
+
+
+
+
+        ###    check_entrance(cls, entrance) :
+        '''
+        - We want to make sure that we always have an entrance in the TOP ROW
+        - Valid entrance should be only one letter [A-Z] followed by digit 1 : A1, T1, Z1.
+        - Invalid entrances : A2, Z8, AB1, XY1,
+        '''
+        col_entrance, row_entrance = entrance[ :1 ], entrance[ 1 : ]
+        assert col_entrance in string.ascii_uppercase, f"entrance first character must be a letter uppercase "
+        assert  row_entrance == '1', f"entrance second character must be a always digit= 1 "
+
+        # Check letter_entrance is valid. You cannot have S in a column size = 5 with letters [A,B,C,D,E]
+        assert col_entrance in col_letters, f"entrance letter {col_entrance} does not fit within column size= {cols_size}. " \
+                                            f"Last letter must be {string.ascii_uppercase[rows_size]}"
+
+
+        return walls_in_grid
+
+
+
 
 
 ###########         User Schema        ############
