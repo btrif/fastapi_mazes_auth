@@ -1,5 +1,5 @@
 #  Created by btrif Trif on 21-02-2023 , 5:51 PM.
-from datetime import timedelta, datetime
+from datetime import datetime
 import subprocess
 
 from fastapi import Depends, HTTPException
@@ -10,10 +10,10 @@ from utils import get_current_user
 from crud import get_user_by_email, get_users, create_user
 from database import get_db
 
-from schemas import UserSchema, TokenSchema, UserCreateSchema
+from schemas import UserSchema, UserCreateSchema
 
 from fastapi import APIRouter
-users_router = APIRouter()
+
 
 users_router = APIRouter(
         prefix="",
@@ -57,12 +57,12 @@ def read_all_users(
 
 
 @users_router.get("/read_myself", response_model=UserSchema)
-async def read_my_user_only_if_authenticated(current_user: UserSchema = Depends(get_current_user)) :
+def read_my_user_only_if_authenticated(current_user: UserSchema = Depends(get_current_user)) :
     return current_user
 
 
 @users_router.get("/hello_myself", response_model=dict)
-async def hello_my_user_only_if_authenticated(current_user: UserSchema = Depends(get_current_user)) :
+def hello_my_user_only_if_authenticated(current_user: UserSchema = Depends(get_current_user)) :
     date = datetime.now().strftime("%d.%m.%Y")
     time = datetime.now().strftime("%H:%M")
     processor = str(subprocess.check_output([ "wmic", "cpu", "get", "name" ]).strip()).split('\\n')[ 1 ]

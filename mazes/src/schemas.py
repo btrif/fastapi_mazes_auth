@@ -248,8 +248,8 @@ class MazeCreateSchema(MazeBaseSchema) :
     @validator('walls')
     def check_at_least_one_wall(cls, walls) :
 
-        # first group [A-Z]\d{1,2} matches only :  C99
-        # second group is greedy and matches:       ,A2,B13,E7,D2,B5      . That is why they are separated
+        # first group    [A-Z]\d{1,2}   matches only :  C99
+        # second group    (,[A-Z]\d{1,2})*    is greedy and matches:     ,A2,B13,E7,D2,B5      . That is why they are separated
         walls_pattern = "^[A-Z]\d{1,2}(,[A-Z]\d{1,2})*$"
         match_walls = re.match(walls_pattern, walls)
         print(f"validate_grid  match_walls : {match_walls}")
@@ -302,10 +302,7 @@ class MazeCreateSchema(MazeBaseSchema) :
             ) <= rows_size, f"{walls_numbers - set(range(1, rows_size + 1))} within walls row numbers are too big. Maximum possible nr is {rows_size}. "
 
 
-
-
-
-        ###    check_entrance(cls, entrance) :
+        ###    Check entrance(cls, entrance) :
         '''
         - We want to make sure that we always have an entrance in the TOP ROW
         - Valid entrance should be only one letter [A-Z] followed by digit 1 : A1, T1, Z1.

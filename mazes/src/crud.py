@@ -87,7 +87,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool :
     return pwd_context.verify(plain_password, hashed_password)
 
 
-def get_user(
+def get_user_by_username(
         db: Session,
         user_name: str
         ) :
@@ -117,8 +117,8 @@ def create_user(db: Session, user: UserCreateSchema) :
     return db_user
 
 
-def delete_user(db: Session, username: str) :
-    db_user = get_user(db, username)
+def delete_user(db: Session, user_name: str) :
+    db_user = get_user_by_username(db, user_name)
     print(f"db_user from delete_user in crud : {db_user}")
 
     db.delete(db_user)

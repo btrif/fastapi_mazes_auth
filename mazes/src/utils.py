@@ -12,7 +12,7 @@ from jose import jwt, JWTError
 
 from models import User
 from schemas import TokenDataSchema, TokenSchema, oauth2_scheme
-from crud import get_user, verify_password
+from crud import get_user_by_username, verify_password
 from database import get_db
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 300  # 30 minutes
@@ -43,7 +43,7 @@ def verify_password(password: str, hashed_pass: str) -> bool:
 ####             User functions                 ####
 
 def authenticate_user(db, username: str, password: str) :
-    user = get_user(db, username)
+    user = get_user_by_username(db, username)
     print(f"user : {user}")
     if not user :
         print(f"if not user <-------")
@@ -56,13 +56,9 @@ def authenticate_user(db, username: str, password: str) :
     return user
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme)) :
-    user = fake_decode_token(token)
-    return user
-
 
 def authenticate_user(db, username: str, password: str) :
-    user = get_user(db, username)
+    user = get_user_by_username(db, username)
     if not user :
         return False
     if not verify_password(password, user.hashed_password) :
@@ -72,11 +68,6 @@ def authenticate_user(db, username: str, password: str) :
 
 ###############################
 ####             Token functions             ####
-
-def fake_decode_token(token) :
-    return User(
-            username=token + "fakedecoded", email="john@example.com"
-            )
 
 
 def create_access_token(data: dict, expires_delta: Union[ timedelta, None ] = None) :
@@ -90,7 +81,7 @@ def create_access_token(data: dict, expires_delta: Union[ timedelta, None ] = No
     return encoded_jwt
 
 
-async def get_current_user(
+def get_current_user(
         db: Session = Depends(get_db),
         token: str = Depends(oauth2_scheme)
         ) :
@@ -115,7 +106,7 @@ async def get_current_user(
         raise credentials_exception
 
     # Get user from DB
-    user = get_user(db, token_data.username)
+    user = get_user_by_username(db, token_data.username)
     print(f"get_current_user -> user_from_DB : {user}")
     if user is None :
         print(f"credentials_exception  second {credentials_exception}")

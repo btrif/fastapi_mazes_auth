@@ -28,8 +28,8 @@ def test_get_hashed_password() :
     assert verify_password(test_password, fake_hashed_password) is False
 
 
-def test_get_user() :
-    from crud import get_user
+def test_get_user_by_username() :
+    from crud import get_user_by_username
     user_name = "evanzo"
 
     # Just make a manual session as model, not a real test
@@ -40,7 +40,7 @@ def test_get_user() :
         print(f"user : {user}")
 
     # effective test of the get_user function
-    get_user_result = get_user(current_test_session, user_name)
+    get_user_result = get_user_by_username(current_test_session, user_name)
     print(f"\nresult : {get_user_result}")
 
     assert get_user_result.username == user_name

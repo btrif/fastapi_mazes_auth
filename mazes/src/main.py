@@ -10,7 +10,7 @@ from fastapi import Depends, FastAPI, HTTPException, Request, Query
 from sqlalchemy.orm import Session
 from fastapi.responses import RedirectResponse
 
-from crud import get_user, get_hashed_password, verify_password
+from crud import get_user_by_username, get_hashed_password, verify_password
 from database import get_db, Base, db_engine
 
 from schemas import TokenSchema
@@ -29,14 +29,6 @@ from routers import users, items, mazes, admin
 
 mazes_app.include_router(users.users_router)
 mazes_app.include_router(mazes.mazes_router)
-
-# mazes_app.include_router(
-#         admin.router_admin,
-#         prefix="/admin",
-#         tags=["admin"],
-#         dependencies=[Depends(TokenSchema)],
-#         responses={418: {"description": "I'm a teapot"}},
-#         )
 mazes_app.include_router(items.items_router)
 mazes_app.include_router(admin.admin_router)
 
@@ -127,7 +119,7 @@ async def login(
         form_data: OAuth2PasswordRequestForm = Depends(),
         ) :
     # 1.  Get the user from DB
-    user = get_user(db, user_name=form_data.username)
+    user = get_user_by_username(db, user_name=form_data.username)
 
     if user is None :
         raise HTTPException(
@@ -172,17 +164,6 @@ async def add_process_time_header(request: Request, call_next):
 
 '''
 
-@mazes_app.get("/books")
-def read_books(test: Optional[str] = Query(None, min_length=3, max_length=10, regex="^testquery$")):
-    '''
-    Basically, in the above snippet, error response is triggered if the query parameter has value other than testquery.
-    '''
-    results = {"books": [{"book_name": "The Great Hunt"}, {"book_name": "The Dragon Reborn"}]}
-
-    if test:
-        results.update({"test": test})
-
-    return results
 
 # Simple redirection to /docs
 @mazes_app.get('/', response_class=RedirectResponse, include_in_schema=False)
