@@ -6,15 +6,13 @@ import numpy as np
 maze_configuration = {
     "entrance": "B2 ",
     "gridSize": "8x8",
-    "walls": ["C1", "G1", "A2", "C2", "E2", "G2", "C3", "E3", "B4", "C4", "E4",
-              "F4", "G4", "B5", "E5", "B6", "D6", "E6", "G6", "H6", "B7", "D7", "G7", "B8"]
+    "walls": "C1, G1, A2, C2, E2,G2,C3,E3,B4,C4,E4,F4,G4,B5,E5,B6,D6,E6,G6,H6,B7,D7,G7,B8"
     }
 
 maze_configuration = {
     "entrance": "A1 ",
     "gridSize": "8x8",
-    "walls": ["C1", "G1", "A2", "C2", "E2", "G2", "E3", "B4", "E4", "G4", "D5", "E5", "H5",
-              "D6", "H6", "B6", "D7", "G7", "H2"]
+    "walls": "C1,G1,A2,C2,E2,G2,E3,B4,E4,G4,D5,E5,H5,D6,H6,B6,D7,G7,H2"
     }
 
 
@@ -30,7 +28,6 @@ class MazeGrid():
         self.config = maze_config
         self.maze = self.get_maze_from_config()
         self.entrance = self.get_entrance(self.config["entrance"])
-        # print(f'ENTRANCE : {self.entrance}')
         self.solutions = self.solve_maze_algorithm(self.maze, self.entrance)
 
     def get_entrance(self, entrance):
@@ -42,15 +39,16 @@ class MazeGrid():
         chars = {char: index for index, char in enumerate(string.ascii_uppercase)}
         # print(chars)
         Wall_indeces = []
-        for wall in self.config["walls"]:
+        for wall in (self.config["walls"]).split(',') :
             letter, number = wall[:1], int(wall[1:])
-            # print(f"wall : {wall},  {letter},   {number} ")
+            print(f"wall : {wall},    column = {letter}  row = {number} ")
             Wall_indeces.append((number - 1, chars[letter]))  # row is number, col is letter
-        # print(f"Wall_indeces : {Wall_indeces}")
+        print(f"Wall_indeces : {Wall_indeces}")
         return Wall_indeces
 
     def get_maze_from_config(self):
         x, y = list(map(int, self.config["gridSize"].split("x")))
+
         maze = np.ones(shape=(x, y), dtype=int)
         wall_indeces = self.map_walls_to_matrix_indices()
         for x, y in wall_indeces:
@@ -63,7 +61,7 @@ class MazeGrid():
         chess_solution = []
         for row, col in solution:
             chess_solution.append(chars[col] + str(row + 1))
-        return chess_solution
+        return ','.join(chess_solution)
 
     def next_position(self, pos, move):
         ''' Get the next position'''
@@ -193,5 +191,7 @@ class MazeGrid():
 if __name__ == '__main__':
     solutions = MazeGrid(maze_configuration)
     print(solutions.solutions)
-    print(f"solution: {solutions.get_min_or_max_path('min')}")
+    min_or_max_sol = 'max'
+
+    print(f"\n{min_or_max_sol} solution: {solutions.get_min_or_max_path(min_or_max_sol)}")
 

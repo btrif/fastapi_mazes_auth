@@ -224,7 +224,7 @@ class MazeCreateSchema(MazeBaseSchema) :
         match_grid = re.match(grid_pattern, grid_size)
         print(f"validate_grid  match_grid : {match_grid}")
         if not match_grid :
-            raise HTTPException(f"ValidationError : gridSize must be of the form : 32x26 and no spaces. Example : 9x12")
+            raise HTTPException(f"ValidationError : grid_size must be of the form : 32x26 and no spaces. Example : 9x12")
 
         assert match_grid, f"ValidationError : grid_size must be of the form : 32x26 and no spaces. Example : 9x12"
 
@@ -309,12 +309,12 @@ class MazeCreateSchema(MazeBaseSchema) :
         - Invalid entrances : A2, Z8, AB1, XY1,
         '''
         col_entrance, row_entrance = entrance[ :1 ], entrance[ 1 : ]
-        assert col_entrance in string.ascii_uppercase, f"entrance first character must be a letter uppercase "
-        assert  row_entrance == '1', f"entrance second character must be a always digit= 1 "
+        assert col_entrance in string.ascii_uppercase, f"entrance's first character must be an uppercase letter "
+        assert  row_entrance == '1', f"entrance's second character must be a always the digit 1. Represents the top row of the maze. "
 
         # Check letter_entrance is valid. You cannot have S in a column size = 5 with letters [A,B,C,D,E]
-        assert col_entrance in col_letters, f"entrance letter {col_entrance} does not fit within column size= {cols_size}. " \
-                                            f"Last letter must be {string.ascii_uppercase[rows_size]}"
+        assert col_entrance in col_letters, f"entrance\'s letter \'{col_entrance}\' does not fit within column size of {cols_size}. " \
+                                            f"Last valid letter must be \'{string.ascii_uppercase[rows_size]}\'. "
 
 
         return walls_in_grid
