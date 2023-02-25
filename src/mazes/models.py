@@ -58,10 +58,10 @@ https://docs.sqlalchemy.org/en/20/core/constraints.html
 
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
-from database import Base
+from src.mazes.database import Base
 
 
-class User(Base) :
+class UserModel(Base) :
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -71,8 +71,8 @@ class User(Base) :
     is_active = Column(Boolean, default=True)
 
     # not fields, but relationships
-    items = relationship("Item", back_populates="owner")
-    mazes = relationship("Maze", back_populates="owner")
+    items = relationship("ItemModel", back_populates="owner")
+    mazes = relationship("MazeModel", back_populates="owner")
 
 
     def __repr__(self) :
@@ -80,7 +80,7 @@ class User(Base) :
                f"mazes: {self.mazes},  items: {self.items},  "
 
 
-class Item(Base) :
+class ItemModel(Base) :
     __tablename__ = "items"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -89,14 +89,14 @@ class Item(Base) :
     owner_id = Column(Integer, ForeignKey("users.id"))
 
     # Relationship with users table
-    owner = relationship("User", back_populates="items")
+    owner = relationship("UserModel", back_populates="items")
 
 
     def __repr__(self) :
         return f"id: {self.id}, title: {self.title}, description: {self.description}, owner_id: {self.owner_id}"
 
 
-class Maze(Base) :
+class MazeModel(Base) :
     ''' Defining constraints in Column type String
     https://docs.sqlalchemy.org/en/20/core/constraints.html
     '''
@@ -111,7 +111,7 @@ class Maze(Base) :
     owner_id = Column(Integer, ForeignKey("users.id"))
 
     # Relationship with users table
-    owner = relationship("User", back_populates="mazes")
+    owner = relationship("UserModel", back_populates="mazes")
 
 
     def __repr__(self) :

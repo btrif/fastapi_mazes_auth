@@ -320,7 +320,9 @@ class MazeCreateSchema(MazeBaseSchema) :
         return walls_in_grid
 
 
-
+class MazeSolution(MazeSchema):
+    min_solution: str
+    max_solution: str
 
 
 ###########         User Schema        ############

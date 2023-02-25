@@ -4,14 +4,14 @@ import string, re
 import numpy as np
 
 maze_configuration = {
+    "grid_size": "8x8",
     "entrance": "B2 ",
-    "gridSize": "8x8",
     "walls": "C1, G1, A2, C2, E2,G2,C3,E3,B4,C4,E4,F4,G4,B5,E5,B6,D6,E6,G6,H6,B7,D7,G7,B8"
     }
 
 maze_configuration = {
+    "grid_size": "8x8",
     "entrance": "A1 ",
-    "gridSize": "8x8",
     "walls": "C1,G1,A2,C2,E2,G2,E3,B4,E4,G4,D5,E5,H5,D6,H6,B6,D7,G7,H2"
     }
 
@@ -47,7 +47,7 @@ class MazeGrid():
         return Wall_indeces
 
     def get_maze_from_config(self):
-        x, y = list(map(int, self.config["gridSize"].split("x")))
+        x, y = list(map(int, self.config["grid_size"].split("x")))
 
         maze = np.ones(shape=(x, y), dtype=int)
         wall_indeces = self.map_walls_to_matrix_indices()

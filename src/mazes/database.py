@@ -65,17 +65,15 @@ so there's no need for that default mechanism.
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
-from sqlalchemy.orm import Session
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///../mazes_app.db"
+SQLALCHEMY_DATABASE_URL = "sqlite:///../../mazes_app.db"
 # SQLALCHEMY_DATABASE_URL = "postgresql://user:password@postgresserver/db"
 
 db_engine = create_engine(
-        SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+        SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread" : False}
         )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=db_engine)
-
 
 # Construct a base class for declarative class definitions.
 #
@@ -85,8 +83,6 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=db_engine)
 # information provided declaratively in the class and any subclasses
 # of the class.
 Base = declarative_base()
-
-
 
 
 # Dependency

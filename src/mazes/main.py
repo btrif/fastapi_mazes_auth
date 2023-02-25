@@ -1,21 +1,19 @@
 #  Created by btrif Trif on 31-01-2023 , 3:56 PM.
 
 from datetime import timedelta
-import time
-from typing import Optional
 
 from fastapi.security import OAuth2PasswordRequestForm
 
-from fastapi import Depends, FastAPI, HTTPException, Request, Query
+from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
 from fastapi.responses import RedirectResponse
 
-from crud import get_user_by_username, get_hashed_password, verify_password
-from database import get_db, Base, db_engine
+from src.mazes.crud import get_user_by_username, get_hashed_password, verify_password
+from src.mazes.database import get_db, Base, db_engine
 
-from schemas import TokenSchema
+from src.mazes.schemas import TokenSchema
 
-from utils import ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token
+from src.mazes.utils import ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token
 
 
 # creates all the tables into the database; will not attempt to recreate tables already
@@ -25,7 +23,7 @@ Base.metadata.create_all(bind=db_engine)
 # STARTS THE WHOLE APPLICATION
 mazes_app = FastAPI()
 
-from routers import users, items, mazes, admin
+from src.mazes.routers import users, items, mazes, admin
 
 mazes_app.include_router(users.users_router)
 mazes_app.include_router(mazes.mazes_router)

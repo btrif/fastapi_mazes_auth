@@ -2,11 +2,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from crud import delete_user, get_user_by_username
-from database import get_db
-
-from schemas import UserBaseSchema, UserSchema
-from utils import get_current_user
+from src.mazes.crud import delete_user, get_user_by_username
+from src.mazes.database import get_db
+from src.mazes.schemas import UserBaseSchema, UserSchema
+from src.mazes.utils import get_current_user
 
 admin_router = APIRouter(
         prefix="",

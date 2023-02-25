@@ -10,10 +10,10 @@ from typing import Union, Any
 
 from jose import jwt, JWTError
 
-from models import User
-from schemas import TokenDataSchema, TokenSchema, oauth2_scheme
-from crud import get_user_by_username, verify_password
-from database import get_db
+from src.mazes.models import UserModel
+from src.mazes.schemas import TokenDataSchema, TokenSchema, oauth2_scheme
+from src.mazes.crud import get_user_by_username, verify_password
+from src.mazes.database import get_db
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 300  # 30 minutes
 REFRESH_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
@@ -57,12 +57,16 @@ def authenticate_user(db, username: str, password: str) :
 
 
 
-def authenticate_user(db, username: str, password: str) :
+def authenticate_user(db, username: str, password: str) -> Union[UserModel, bool] :
+    # 1. Go to the database to find the user by impersonating the user name
     user = get_user_by_username(db, username)
     if not user :
+        # 2. The user does not exist
         return False
     if not verify_password(password, user.hashed_password) :
+        # 3. Password verification failed
         return False
+    # 4. Pass the verification and return user information
     return user
 
 

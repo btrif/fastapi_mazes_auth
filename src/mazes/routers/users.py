@@ -5,12 +5,10 @@ import subprocess
 from fastapi import Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from utils import get_current_user
-
-from crud import get_user_by_email, get_users, create_user
-from database import get_db
-
-from schemas import UserSchema, UserCreateSchema
+from src.mazes.utils import get_current_user
+from src.mazes.crud import get_user_by_email, get_users, create_user
+from src.mazes.database import get_db
+from src.mazes.schemas import UserSchema, UserCreateSchema
 
 from fastapi import APIRouter
 

@@ -3,10 +3,10 @@
 from fastapi import Depends, APIRouter
 from sqlalchemy.orm import Session
 
-from utils import get_current_user
-from crud import create_user_item, get_items
-from database import get_db
-from schemas import UserSchema, ItemCreateSchema, ItemSchema
+from src.mazes.utils import get_current_user
+from src.mazes.crud import create_user_item, get_items
+from src.mazes.database import get_db
+from src.mazes.schemas import UserSchema, ItemCreateSchema, ItemSchema
 
 
 items_router = APIRouter(

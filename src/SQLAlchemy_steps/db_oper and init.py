@@ -1,13 +1,9 @@
 #  Created by btrif Trif on 14-02-2023 , 2:04 PM.
 
 
-from sqlalchemy import select
-from sqlalchemy.orm import Session
-
 from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
 
-from models import User, Item
+from models import UserModel
 from database import SQLALCHEMY_DATABASE_URL, Base
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
@@ -36,7 +32,7 @@ import models
 
 
 def get_user(db: Session, user_id: int) :
-    return db.query(models.User).filter(models.User.id == user_id).first()
+    return db.query(models.UserModel).filter(models.UserModel.id == user_id).first()
 
 
 # print(f"get_user : {get_user()}")
@@ -51,7 +47,7 @@ def authenticate_user(fake_db, username: str, password: str) :
     return user
 
 
-my_user = User(
+my_user = UserModel(
         username="aretae",
         email="assdir@asd.com",
         hashed_password="asd123",

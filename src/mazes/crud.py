@@ -71,8 +71,10 @@ Item(**item.dict(), owner_id=user_id)
 
 from sqlalchemy.orm import Session
 
-from models import User, Item, Maze
-from schemas import UserCreateSchema, ItemCreateSchema, UserSchema, MazeCreateSchema, MazeBaseSchema
+from src.mazes.models import UserModel, ItemModel, MazeModel
+from src.mazes.schemas import UserCreateSchema, ItemCreateSchema, UserSchema, MazeCreateSchema, MazeBaseSchema
+
+########      Password  Methods    #########
 
 from passlib.context import CryptContext
 
@@ -87,26 +89,28 @@ def verify_password(plain_password: str, hashed_password: str) -> bool :
     return pwd_context.verify(plain_password, hashed_password)
 
 
+########      User Methods    #########
+
 def get_user_by_username(
         db: Session,
         user_name: str
         ) :
-    return db.query(User).filter(User.username == user_name).first()
+    return db.query(UserModel).filter(UserModel.username == user_name).first()
 
 
 def get_user_by_email(
         db: Session,
         email: str
         ) :
-    return db.query(User).filter(User.email == email).first()
+    return db.query(UserModel).filter(UserModel.email == email).first()
 
 
 def get_users(db: Session, skip: int = 0, limit: int = 100) :
-    return db.query(User).offset(skip).limit(limit).all()
+    return db.query(UserModel).offset(skip).limit(limit).all()
 
 
 def create_user(db: Session, user: UserCreateSchema) :
-    db_user = User(
+    db_user = UserModel(
             username=user.username,
             email=user.email,
             hashed_password=get_hashed_password(user.password)
@@ -126,21 +130,37 @@ def delete_user(db: Session, user_name: str) :
     return db_user
 
 
+########      Items  Methods    #########
+
 def get_items(db: Session, skip: int = 0, limit: int = 100) :
-    return db.query(Item).offset(skip).limit(limit).all()
+    return db.query(ItemModel).offset(skip).limit(limit).all()
 
 
 def create_user_item(db: Session, item: ItemCreateSchema, user_id: int) :
-    db_item = Item(**item.dict(), owner_id=user_id)
+    db_item = ItemModel(**item.dict(), owner_id=user_id)
     db.add(db_item)
     db.commit()
     db.refresh(db_item)
     return db_item
 
 
+########      Mazes  Methods    #########
+
+def get_mazes(db: Session, skip: int = 0, limit: int = 100) :
+    return db.query(MazeModel).offset(skip).limit(limit).all()
+
+
+def get_maze_by_id(
+        db: Session,
+        maze_id: str,
+
+        ) :
+    return db.query(MazeModel).filter(MazeModel.id == maze_id).first()
+
+
 def create_user_maze(db: Session, maze_item: MazeCreateSchema, user_id: int) :
     print(f"create_user_maze   :   item = {maze_item}")
-    db_maze = Maze(**maze_item.dict(), owner_id=user_id, )
+    db_maze = MazeModel(**maze_item.dict(), owner_id=user_id, )
     print(f"create_user_maze    :   db_maze = {db_maze}")
     db.add(db_maze)
     db.commit()
