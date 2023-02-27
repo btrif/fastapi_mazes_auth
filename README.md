@@ -2,7 +2,7 @@
 
 ##           FAST Maze API
 
-#### sDescription:
+####  Description:
 
 A small app which handles user authentication with token.
 You can create your own user then authenticate and create mazes.

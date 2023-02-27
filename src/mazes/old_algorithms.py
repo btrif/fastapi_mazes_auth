@@ -26,34 +26,39 @@ class NotAValidEntrance(Exception):
 class MazeGrid():
     def __init__(self, maze_config):
         self.config = maze_config
+        print(f'maze config : { type(self.config) }   { self.config}     ')
         self.maze = self.get_maze_from_config()
         self.entrance = self.get_entrance(self.config["entrance"])
-        self.solutions = self.solve_maze_algorithm(self.maze, self.entrance)
+        self.solutions = self.get_BFS(self.maze, self.entrance)
 
     def get_entrance(self, entrance):
+        '''Translates entrance in the form C1 to the workable type (0, 2)'''
         letter = re.search('[A-Z]', entrance).group()
         col = string.ascii_uppercase.index(letter)
         return (0, col)
 
     def map_walls_to_matrix_indices(self):
+        ''' Translates map walls of the form D3 to the computable type (3, 2) '''
         chars = {char: index for index, char in enumerate(string.ascii_uppercase)}
         # print(chars)
         Wall_indeces = []
         for wall in (self.config["walls"]).split(',') :
             letter, number = wall[:1], int(wall[1:])
-            print(f"wall : {wall},    column = {letter}  row = {number} ")
+            print(f"wall : {wall},    column = {letter}  row = {number}        {(number - 1, chars[letter])}")
             Wall_indeces.append((number - 1, chars[letter]))  # row is number, col is letter
         print(f"Wall_indeces : {Wall_indeces}")
         return Wall_indeces
 
     def get_maze_from_config(self):
+        ''' Transforms the given maze configuration into computable matrix where
+                1 is a free path  &      0 is a wall'''
         x, y = list(map(int, self.config["grid_size"].split("x")))
 
         maze = np.ones(shape=(x, y), dtype=int)
         wall_indeces = self.map_walls_to_matrix_indices()
         for x, y in wall_indeces:
             maze[x, y] = 0
-        # print(f"final_maze :\n{maze}")
+        print(f"final_maze :\n{maze}")
         return maze
 
     def translate_solution_into_letter_columns(self, solution):
@@ -108,7 +113,7 @@ class MazeGrid():
         elif min_max == 'max':
             return self.translate_solution_into_letter_columns(max_solution)
 
-    def solve_maze_algorithm(self, maze, entrance):
+    def get_BFS(self, maze, entrance):
         '''
          A BFS-like Algorithm to find all possible paths of a MAZE from entrance to exit
         **©**  Written by Bogdan Trif @ 2022.07.10
@@ -149,17 +154,17 @@ class MazeGrid():
             for key, path in cur_Paths.items():
                 # print(f"                    ~~   PATH = {path}           key = {key}    ~~~~ ")
 
-                for move in ['U', 'R', 'D', 'L']:
-                    # print(f"---- move =  {move} ")
+                for move in ['D', 'R', 'L', 'U']:
+                    print(f"---- move =  {move} ")
                     pos = path[-1]
                     if self.is_valid_next_pos(pos, move, maze):
                         next_pos = self.next_position(pos, move)
                         # We add the new path only if we've not been there
                         if next_pos not in path:
-                            # print(f'{move} accepted')
+                            print(f'{move} accepted')
                             new_path = path.copy()
                             new_path.append(next_pos)
-                            # print(f"pos = {pos},   move = {move},   next_pos = {next_pos} ,   new_path = {new_path}  ,    path = {path} ")
+                            print(f"pos = {pos},   move = {move},   next_pos = {next_pos} ,   new_path = {new_path}  ,    path = {path} ")
                             # Add the new path to the next_Paths, ONLY if regular move or EXIT move :
                             next_Paths[key + move] = new_path
                             # If we have an Exit then validate and ADD to the GENERAL Paths
@@ -178,10 +183,16 @@ class MazeGrid():
             # print(f"next_Paths : ")
             # for k,v in next_Paths.items(): print(f"key = {k}       path = {v}")
             # print(f"next_Paths : {next_Paths}")
+
             # We prepare the next loop. So we take the new Paths on which we will work on
             cur_Paths = next_Paths.copy()
 
             # print('\n=========================')
+
+        # In the case that the maze has not a valid path:
+        if len(CompletePaths) == 0 :
+            # print(f"No Valid paths. There is no solution")
+            return f"No Valid paths. There is no solution"
 
         print(f'\nCompletePaths : ')
         for k, v in CompletePaths.items(): print(f'{k}     length={len(v)}      path : {v}')
@@ -189,9 +200,27 @@ class MazeGrid():
 
 
 if __name__ == '__main__':
-    solutions = MazeGrid(maze_configuration)
+
+    maze_configuration = {
+        "grid_size": "8x8",
+        "entrance": "B2 ",
+        "walls": "C1, G1, A2, C2, E2,G2,C3,E3,B4,C4,E4,F4,G4,B5,E5,B6,D6,E6,G6,H6,B7,D7,G7,B8"
+        }
+
+    maze_configuration = {
+        "grid_size": "8x8",
+        "entrance": "A1 ",
+        "walls": "C1,G1,A2,C2,E2,G2,E3,B4,E4,G4,D5,E5,H5,D6,H6,B6,D7,G7,H2"
+        }
+
+
+    grid_config = {'grid_size': '10x7', 'walls': 'B2,C3,A4,A5,B6,B3,C10,E1,F7,A10', 'entrance': 'C1'}     # TODO: Fix this maze case
+    # grid_config = {'grid_size': '4x4', 'walls': 'D1,B2,A3', 'entrance': 'A1'}
+
+
+    solutions = MazeGrid(grid_config)
     print(solutions.solutions)
-    min_or_max_sol = 'max'
+    min_or_max_sol = 'min'
 
     print(f"\n{min_or_max_sol} solution: {solutions.get_min_or_max_path(min_or_max_sol)}")
 

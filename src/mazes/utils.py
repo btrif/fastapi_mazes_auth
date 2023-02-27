@@ -95,12 +95,15 @@ def get_current_user(
             headers={"WWW-Authenticate" : "Bearer"},
             )
     try :
+        # 1. Decode the received token
         payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[ ALGORITHM ])
         print(f"credentials_exception -> payload : {payload}")
+        # 2. Get the username
         username: str = payload.get("sub")
         print(f"credentials_exception -> spooky username :  {username}")
 
         if username is None :
+            # 3. If the token is invalid, return an error code
             raise credentials_exception
 
         token_data = TokenDataSchema(username=username)
@@ -109,11 +112,11 @@ def get_current_user(
         print(f"get_current_user -> credentials_exception {credentials_exception}")
         raise credentials_exception
 
-    # Get user from DB
+    # 4. Get users from DB
     user = get_user_by_username(db, token_data.username)
     print(f"get_current_user -> user_from_DB : {user}")
     if user is None :
         print(f"credentials_exception  second {credentials_exception}")
         raise credentials_exception
-
+    # 5. Return to user
     return user

@@ -116,24 +116,24 @@ async def login(
         db: Session = Depends(get_db),
         form_data: OAuth2PasswordRequestForm = Depends(),
         ) :
-    # 1.  Get the user from DB
-    user = get_user_by_username(db, user_name=form_data.username)
+    # 1.  Get the db_user from DB
+    db_user = get_user_by_username(db, user_name=form_data.username)
 
-    if user is None :
+    if not db_user :
         raise HTTPException(
                 status_code=404, detail="User not found",
                 headers={"WWW-Authenticate" : "Bearer"},
                 )
-    print(f"form_data typed user : {form_data.username}")
+    print(f"form_data typed db_user : {form_data.username}")
     print(f" form_data  'typed passwd: ' {form_data.password}")
     print(f"hashed_password : {get_hashed_password(form_data.password)}")
-    print(f"password from DB : {user.hashed_password}")
+    print(f"password from DB : {db_user.hashed_password}")
 
     # 2. Check password :
-    user_hashed_passwd = user.hashed_password
-    print(f"Check : {verify_password(form_data.password, user.hashed_password)}")
+    print(f"Check : {verify_password(form_data.password, db_user.hashed_password)}")
 
-    if not verify_password(form_data.password, user.hashed_password) :
+    if not verify_password(form_data.password, db_user.hashed_password) :
+        # 3. If the verification fails, an error code is returned
         raise HTTPException(
                 status_code=400,
                 detail="Incorrect password",
@@ -141,9 +141,11 @@ async def login(
                 )
 
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    # 4. Generate token
     access_token = create_access_token(
-            data={"sub" : user.username}, expires_delta=access_token_expires
+            data={"sub" : db_user.username}, expires_delta=access_token_expires
             )
+    # 5. Return JSON response
     return {
         "access_token" : access_token,
         "token_type" : "bearer"

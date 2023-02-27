@@ -86,6 +86,7 @@ def get_hashed_password(password: str) -> str :
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool :
+    ''' For a given plain password it verifies if the generated hashed password matches'''
     return pwd_context.verify(plain_password, hashed_password)
 
 

@@ -67,9 +67,10 @@ def solve_maze(
                 entrance = db_maze.entrance,
                 walls = db_maze.walls,
                 )
-            print(f"maze_config :   {maze_config}    {maze_config.dict()}         ")
-            maze = MazeGrid(**maze_config.dict())
-            maze_solution = maze.get_min_or_max_path('min')
+            print(f"maze_config :   {maze_config}            ")
+            print(f"maze config 2 : { maze_config.dict() }")
+            maze = MazeGrid(maze_config.dict())
+            # maze_solution = maze.get_min_or_max_path('min')
             # return maze
 
         return db_maze
