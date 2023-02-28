@@ -4,9 +4,9 @@
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
-from src.mazes.algorithms import MazeGrid
+from src.mazes.algorithms import MazeDFS, MazeMapping, get_chess_table_from_matrix_form
 from src.mazes.utils import get_current_user
-from src.mazes.crud import create_user_maze, get_mazes, get_maze_by_id
+from src.mazes.crud import create_user_maze, get_mazes, get_maze_by_id, update_maze_solution
 from src.mazes.database import get_db
 
 from src.mazes.schemas import UserSchema, MazeCreateSchema, MazeBaseSchema, MazeSchema, MazeSolution
@@ -56,22 +56,33 @@ def solve_maze(
         db: Session = Depends(get_db), ) :
     db_maze = get_maze_by_id(db, maze_id)
     if db_maze :
-        print(f"db_maze : {db_maze}     min_solution:  {db_maze.min_solution}    type : {type(db_maze)}")
-        if db_maze.min_solution :
-            return db_maze.min_solution
+        print(f"db_maze : {db_maze}     max_solution:  {db_maze.max_solution}    type : {type(db_maze)}")
+        if db_maze.max_solution :
+            return db_maze.max_solution
 
         else :
-            walls = db_maze.walls
             maze_config = MazeBaseSchema(
-                grid_size = db_maze.grid_size,
-                entrance = db_maze.entrance,
-                walls = db_maze.walls,
-                )
+                    grid_size=db_maze.grid_size,
+                    entrance=db_maze.entrance,
+                    walls=db_maze.walls,
+                    )
             print(f"maze_config :   {maze_config}            ")
-            print(f"maze config 2 : { maze_config.dict() }")
-            maze = MazeGrid(maze_config.dict())
-            # maze_solution = maze.get_min_or_max_path('min')
-            # return maze
+            print(f"maze config 2 : {maze_config.dict()}")
+            maze = MazeMapping(maze_config.dict())
+            maze_matrix = maze.maze_matrix
+            maze_entrance = maze.maze_entrance
+            longest_path = MazeDFS(maze_matrix, maze_entrance).longest_path
+            print(f'solve_maze :   {len(longest_path)}    {longest_path}')
+            maze_solution = get_chess_table_from_matrix_form(longest_path)
+            print(f"maze_solution : {maze_solution}")
+
+            if maze_solution :
+                update_maze_solution(
+                        db,
+                        maze_id,
+                        maze_solution,
+                        )
+                return maze_solution
 
         return db_maze
 

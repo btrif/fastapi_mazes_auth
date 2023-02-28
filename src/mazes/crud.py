@@ -159,6 +159,19 @@ def get_maze_by_id(
     return db.query(MazeModel).filter(MazeModel.id == maze_id).first()
 
 
+def update_maze_solution(
+        db: Session,
+        maze_id: str,
+        # max_solution: str,
+        solution : str,
+        ) :
+    maze = db.query(MazeModel).filter(MazeModel.id == maze_id).first()
+    maze.max_solution = solution
+    db.commit()
+    db.refresh(maze)
+    return maze
+
+
 def create_user_maze(db: Session, maze_item: MazeCreateSchema, user_id: int) :
     print(f"create_user_maze   :   item = {maze_item}")
     db_maze = MazeModel(**maze_item.dict(), owner_id=user_id, )
