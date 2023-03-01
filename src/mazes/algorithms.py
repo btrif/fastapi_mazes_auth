@@ -52,7 +52,7 @@ class MazeMapping() :
         self.walls = self.walls.replace(' ','')
         for wall in (self.walls).split(',') :
             letter, number = wall[ :1 ], int(wall[ 1 : ])  # here in B2, B is the column and 2 is the row
-            print(f"wall : {wall},    column = {letter}  row = {number}        {(number - 1, chars[letter])}")
+            # print(f"wall : {wall},    column = {letter}  row = {number}        {(number - 1, chars[letter])}")
             maze_grid[ number - 1 ][ chars[ letter ] ] = 1  # row is number, col is letter
         print(f"final_maze : \n{maze_grid}")
         return maze_grid

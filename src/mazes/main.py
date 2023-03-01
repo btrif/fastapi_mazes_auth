@@ -4,10 +4,13 @@ from datetime import timedelta
 
 from fastapi.security import OAuth2PasswordRequestForm
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request, Form
 from sqlalchemy.orm import Session
 from fastapi.responses import RedirectResponse
+from fastapi.templating import Jinja2Templates
 
+from routers import html
+from routers.html import spell_number
 from src.mazes.crud import get_user_by_username, get_hashed_password, verify_password
 from src.mazes.database import get_db, Base, db_engine
 
@@ -29,78 +32,9 @@ mazes_app.include_router(users.users_router)
 mazes_app.include_router(mazes.mazes_router)
 mazes_app.include_router(items.items_router)
 mazes_app.include_router(admin.admin_router)
+mazes_app.include_router(html.html_router)
 
 
-'''
-###########     USERS ROUTERS       ###########
-
-
-@mazes_app.post("/create_user/", response_model=UserSchema)
-def create_new_user(
-        user: UserCreateSchema,
-        db: Session = Depends(get_db)
-        ) :
-
-    db_user = get_user_by_email(
-            db,
-            email=user.email
-            )
-
-    print(f"create_user db_user :  {db_user}")
-
-    if db_user :
-        raise HTTPException(status_code=400, detail="Email already registered")
-
-    return create_user(
-            db=db,
-            user=user
-            )
-
-
-@mazes_app.get("/list_users/", response_model=list[ UserSchema ])
-def read_all_users(
-        db: Session = Depends(get_db),
-        skip: int = 0,
-        limit: int = 100,
-        ) :
-    users = get_users(db, skip=skip, limit=limit)
-    return users
-    
-    
-
-@mazes_app.get("/list_users/", response_model=list[ UserSchema ])
-def read_all_users(
-        db: Session = Depends(get_db),
-        skip: int = 0,
-        limit: int = 100,
-        ) :
-    users = get_users(db, skip=skip, limit=limit)
-    return users
-'''
-
-'''
-#########               ITEMS   ROUTERS    ##########
-
-
-@mazes_app.post("/create_item", response_model=ItemSchema)
-def create_item_for_user_only_if_authenticated(
-        item: ItemCreateSchema,
-        db: Session = Depends(get_db),
-        current_user: UserSchema = Depends(get_current_user)
-        ) :
-    user_id = current_user.id
-
-    return create_user_item(db=db, item=item, user_id=user_id)
-
-
-
-@mazes_app.get("/items", response_model=list[ ItemSchema ])
-def list_all_items(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)) :
-    items = get_items(db, skip=skip, limit=limit)
-    return items
-
-
-'''
 
 
 @mazes_app.get("/hello")
@@ -170,6 +104,16 @@ async def add_process_time_header(request: Request, call_next):
 async def docs() :
     return RedirectResponse(url='/docs')
 
+
+####        HTML FORMS          ########
+
+
+
+
+@mazes_app.get("/rest")
+def read_item(num: int):
+    result = spell_number(num)
+    return {"number_spelled": result}
 
 
 if __name__ == "__main__" :

@@ -317,7 +317,8 @@ class MazeCreateSchema(MazeBaseSchema) :
                                             f"Last valid letter must be \'{string.ascii_uppercase[rows_size]}\'. "
 
         #Check entrance is not a wall :
-        assert entrance not in walls, f"entrance cannot be a wall"
+        walls_list = walls.split(',')
+        assert entrance not in walls_list, f"entrance cannot be a wall"
 
         return walls_in_grid
 

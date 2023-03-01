@@ -2,7 +2,6 @@
 import random
 import string
 
-
 from src.mazes.crud import get_hashed_password, verify_password, get_user_by_email, create_user, delete_user, \
     create_user_item, create_user_maze, get_mazes, get_maze_by_id, get_users, get_user_by_username
 
@@ -48,8 +47,6 @@ def test_get_user_by_username() :
 
     assert 1 == 1
     # assert isinstance(user_query_result, src.mazes.models.UserModel)
-
-
 
 
 def test_get_user_by_email() :
@@ -123,14 +120,14 @@ def generate_random_wall_inside_maze_helper(max_row, max_col, entrance) :
         letter = string.ascii_uppercase[ random.randint(0, max_col - 1) ]
         number = str(random.randint(1, max_row))
         wall = ''.join([ letter, number ])
-        if wall != entrance:
+        if wall != entrance :
             yield wall
 
 
-def test_generate_random_wall_inside_maze_helper():
+def test_generate_random_wall_inside_maze_helper() :
     entrance = 'A1'
-    wall_gen = generate_random_wall_inside_maze_helper(2,2,entrance)
-    for _ in range(100):
+    wall_gen = generate_random_wall_inside_maze_helper(2, 2, entrance)
+    for _ in range(100) :
         wall = next(wall_gen)
         print(f"wall : {wall}")
         assert wall is not None
@@ -147,13 +144,16 @@ def test_create_user_maze() :
     entrance = ''.join([ string.ascii_uppercase[ random.randint(0, test_col_size - 1) ], '1' ])
     print(f"entrance : {entrance}")
 
-    min_nr_of_walls = max_row * max_col // 9
-    max_nr_of_walls = max_row * max_col // 4
-    wall_gen = generate_random_wall_inside_maze_helper(test_row_size, test_col_size)
+    min_nr_of_walls = test_row_size * test_col_size // 6
+    max_nr_of_walls = test_row_size * test_col_size // 3
+    print(f"there are : {test_row_size*test_col_size}  squares ")
+    print(f"min_nr_of_walls = {min_nr_of_walls}")
+    print(f"max_nr_of_walls = {max_nr_of_walls}")
+
+    wall_gen = generate_random_wall_inside_maze_helper(test_row_size, test_col_size, entrance)
     # Generate walls
     walls = ','.join({next(wall_gen) for _ in range(min_nr_of_walls, max_nr_of_walls)})
     print(f"walls : \n{walls}")
-
 
     test_maze_configuration = MazeCreateSchema(
             grid_size=grid_size,
