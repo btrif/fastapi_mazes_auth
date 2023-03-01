@@ -116,11 +116,24 @@ def test_create_user_item() :
     assert created_result.description is not None
 
 
-def generate_random_wall_inside_maze_helper(max_row, max_col) :
+def generate_random_wall_inside_maze_helper(max_row, max_col, entrance) :
+    ''' Helper to generate walls inside a maze, limited by max_row and max_col
+        Also, to not be an entrance '''
     while True :
         letter = string.ascii_uppercase[ random.randint(0, max_col - 1) ]
         number = str(random.randint(1, max_row))
-        yield ''.join([ letter, number ])
+        wall = ''.join([ letter, number ])
+        if wall != entrance:
+            yield wall
+
+
+def test_generate_random_wall_inside_maze_helper():
+    entrance = 'A1'
+    wall_gen = generate_random_wall_inside_maze_helper(2,2,entrance)
+    for _ in range(100):
+        wall = next(wall_gen)
+        print(f"wall : {wall}")
+        assert wall is not None
 
 
 def test_create_user_maze() :
@@ -130,13 +143,17 @@ def test_create_user_maze() :
     test_row_size, test_col_size = random.randint(3, max_row), random.randint(3, max_col)
     grid_size = (f"{test_row_size}x{test_col_size}")
     print(f"\ngrid_size = {grid_size}")
+    # Generate entrance
+    entrance = ''.join([ string.ascii_uppercase[ random.randint(0, test_col_size - 1) ], '1' ])
+    print(f"entrance : {entrance}")
+
     min_nr_of_walls = max_row * max_col // 9
     max_nr_of_walls = max_row * max_col // 4
     wall_gen = generate_random_wall_inside_maze_helper(test_row_size, test_col_size)
+    # Generate walls
     walls = ','.join({next(wall_gen) for _ in range(min_nr_of_walls, max_nr_of_walls)})
     print(f"walls : \n{walls}")
-    entrance = ''.join([ string.ascii_uppercase[ random.randint(0, test_col_size - 1) ], '1' ])
-    print(f"entrance : {entrance}")
+
 
     test_maze_configuration = MazeCreateSchema(
             grid_size=grid_size,

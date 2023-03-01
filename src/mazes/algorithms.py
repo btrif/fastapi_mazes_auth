@@ -120,8 +120,10 @@ class MazeDFS() :
         return
 
     def get_longest_path(self):
-        max_key = max( self.all_found_paths.keys() )
-        return self.all_found_paths[ max_key ]
+        if self.all_found_paths :
+            max_key = max( self.all_found_paths.keys() )
+            return self.all_found_paths[ max_key ]
+
 
 
 if __name__ == '__main__' :

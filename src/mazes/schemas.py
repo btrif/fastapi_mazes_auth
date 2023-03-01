@@ -316,6 +316,8 @@ class MazeCreateSchema(MazeBaseSchema) :
         assert col_entrance in col_letters, f"entrance\'s letter \'{col_entrance}\' does not fit within column size of {cols_size}. " \
                                             f"Last valid letter must be \'{string.ascii_uppercase[rows_size]}\'. "
 
+        #Check entrance is not a wall :
+        assert entrance not in walls, f"entrance cannot be a wall"
 
         return walls_in_grid
 

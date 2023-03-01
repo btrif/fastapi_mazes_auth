@@ -72,17 +72,20 @@ def solve_maze(
             maze_matrix = maze.maze_matrix
             maze_entrance = maze.maze_entrance
             longest_path = MazeDFS(maze_matrix, maze_entrance).longest_path
-            print(f'solve_maze :   {len(longest_path)}    {longest_path}')
-            maze_solution = get_chess_table_from_matrix_form(longest_path)
-            print(f"maze_solution : {maze_solution}")
+            if longest_path :
+                print(f'solve_maze :   {len(longest_path)}    {longest_path}')
+                maze_solution = get_chess_table_from_matrix_form(longest_path)
+                print(f"maze_solution : {maze_solution}")
 
-            if maze_solution :
-                update_maze_solution(
-                        db,
-                        maze_id,
-                        maze_solution,
-                        )
-                return maze_solution
+                if maze_solution :
+                    update_maze_solution(
+                            db,
+                            maze_id,
+                            maze_solution,
+                            )
+                    return maze_solution
+            else :
+                return {'status' : 'error', 'message' : "this maze does not have a solution"}
 
         return db_maze
 

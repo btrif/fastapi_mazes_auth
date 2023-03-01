@@ -162,7 +162,6 @@ def get_maze_by_id(
 def update_maze_solution(
         db: Session,
         maze_id: str,
-        # max_solution: str,
         solution : str,
         ) :
     maze = db.query(MazeModel).filter(MazeModel.id == maze_id).first()
