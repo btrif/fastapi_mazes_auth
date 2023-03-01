@@ -66,6 +66,7 @@ class MazeMapping() :
 
 
 def get_chess_table_from_matrix_form(maze_solution):
+    '''Transform from matrix form into chess table'''
     chars = {index : char for index, char in enumerate(string.ascii_uppercase)}
     chess_solution = []
     for row, col in maze_solution :
