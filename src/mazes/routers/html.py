@@ -1,19 +1,12 @@
 #  Created by btrif Trif on 21-02-2023 , 6:15 PM.
 
-from fastapi import Depends, APIRouter
-from sqlalchemy.orm import Session
-from fastapi.security import OAuth2PasswordRequestForm
+#   Taken from :  https://github.com/eugeneyan/fastapi-html
 
-from fastapi import Depends, FastAPI, HTTPException, Request, Form
-from sqlalchemy.orm import Session
-from fastapi.responses import RedirectResponse
+
+from fastapi import APIRouter, Request, Form
+
 from fastapi.templating import Jinja2Templates
-
-from src.mazes.utils import get_current_user
-from src.mazes.crud import create_user_item, get_items
-from src.mazes.database import get_db
-from src.mazes.schemas import UserSchema, ItemCreateSchema, ItemSchema
-
+from starlette.responses import FileResponse
 
 html_router = APIRouter(
         prefix="",
@@ -23,16 +16,16 @@ html_router = APIRouter(
         )
 
 
-
-
 def spell_number(num: int, multiply_by_2: bool = False):
-    d = {0: 'zero', 1: 'one', 2: 'two', 3: 'three', 4: 'four', 5: 'five',
-         6: 'six', 7: 'seven', 8: 'eight', 9: 'nine', 10: 'ten',
-         11: 'eleven', 12: 'twelve', 13: 'thirteen', 14: 'fourteen',
-         15: 'fifteen', 16: 'sixteen', 17: 'seventeen', 18: 'eighteen',
-         19: 'nineteen', 20: 'twenty',
-         30: 'thirty', 40: 'forty', 50: 'fifty', 60: 'sixty',
-         70: 'seventy', 80: 'eighty', 90: 'ninety'}
+    d = {
+        0: 'zero', 1: 'one', 2: 'two', 3: 'three', 4: 'four', 5: 'five',
+        6: 'six', 7: 'seven', 8: 'eight', 9: 'nine', 10: 'ten',
+        11: 'eleven', 12: 'twelve', 13: 'thirteen', 14: 'fourteen',
+        15: 'fifteen', 16: 'sixteen', 17: 'seventeen', 18: 'eighteen',
+        19: 'nineteen', 20: 'twenty',
+        30: 'thirty', 40: 'forty', 50: 'fifty', 60: 'sixty',
+        70: 'seventy', 80: 'eighty', 90: 'ninety'
+        }
     k = 1000
     m = k * 1000
     b = m * 1000
@@ -81,6 +74,17 @@ def spell_number(num: int, multiply_by_2: bool = False):
     else:
         return spell_number(num // t) + ' trillion, ' + spell_number(num % t)
 
+
+def save_to_text(content, filename):
+    filepath = 'static/{}.txt'.format(filename)
+    with open(filepath, 'w') as f:
+        f.write(content)
+    return filepath
+
+
+#########   HTML ROUTES     ########
+
+
 templates = Jinja2Templates(directory='static/')
 
 
@@ -97,23 +101,33 @@ def form_post(request: Request, num: int = Form(...)):
     return templates.TemplateResponse('form.html', context={'request': request, 'result': result, 'num': num})
 
 
-'''
-
-@items_router.post("/create_item", response_model=ItemSchema)
-def create_item_for_user_only_if_authenticated(
-        item: ItemCreateSchema,
-        db: Session = Depends(get_db),
-        current_user: UserSchema = Depends(get_current_user)
-        ) :
-    user_id = current_user.id
-
-    return create_user_item(db=db, item=item, user_id=user_id)
+@html_router.get('/checkbox')
+def form_post(request: Request):
+    result = 'Type a number'
+    return templates.TemplateResponse('checkbox.html', context={'request': request, 'result': result})
 
 
+@html_router.post('/checkbox')
+def form_post(request: Request, num: int = Form(...), multiply_by_2: bool = Form(False)):
+    result = spell_number(num, multiply_by_2)
+    return templates.TemplateResponse('checkbox.html', context={'request': request, 'result': result, 'num': num})
 
-@items_router.get("/items", response_model=list[ ItemSchema ])
-def list_all_items(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)) :
-    items = get_items(db, skip=skip, limit=limit)
-    return items
 
-'''
+@html_router.get('/download')
+def form_post(request: Request):
+    result = 'Type a number'
+    return templates.TemplateResponse('download.html', context={'request': request, 'result': result})
+
+
+@html_router.post('/download')
+def form_post(request: Request, num: int = Form(...), multiply_by_2: bool = Form(False), action: str = Form(...)):
+    if action == 'convert':
+        result = spell_number(num, multiply_by_2)
+        return templates.TemplateResponse(
+                'download.html', context={'request': request, 'result': result, 'num': num}
+                )
+    elif action == 'download':
+        # Requires aiofiles
+        result = spell_number(num, multiply_by_2)
+        filepath = save_to_text(result, num)
+        return FileResponse(filepath, media_type='application/octet-stream', filename='{}.txt'.format(num))
