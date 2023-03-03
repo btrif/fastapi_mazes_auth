@@ -127,6 +127,13 @@ class MazeDFS() :
 
 
 
+class MazeDijkstra():
+    '''
+        https://daemianmack.org/posts/2019/12/mazes-for-programmers-dijkstras-algorithm.html
+    '''
+    pass
+
+
 if __name__ == '__main__' :
     input_mapping = MazeMapping(maze_configuration1)
     maze_matrix = input_mapping.get_maze_matrix_from_chess_config()
