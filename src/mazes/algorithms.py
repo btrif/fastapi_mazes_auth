@@ -131,7 +131,9 @@ class MazeDijkstra():
     '''
         https://daemianmack.org/posts/2019/12/mazes-for-programmers-dijkstras-algorithm.html
     '''
+
     pass
+
 
 
 if __name__ == '__main__' :
