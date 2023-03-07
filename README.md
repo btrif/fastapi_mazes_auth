@@ -4,22 +4,22 @@
 
 ####  Description:
 
-A small app which handles user authentication with token.
+A small FastAPI app which handles user authentication with token.
 You can create your own user then authenticate and create mazes.
 After that you can solve them using either min or max paths. The min
 will be the minimum path and max for the maximum path. Behind the scenes
-there are BFS algorithms.
+there are DFS,BFS,Dijkstra algorithms.
 
 There are a few parts of the application:
 - User creation
 - Mazes creation
 - Admin, user administration
-- And a HTML section which is still in development.
+- And an HTML section which is still in development.
 
 The application works as follows.
 
 1. From them OpenAPi (Swagger ) /docs url you create your onw user.
-Here we use an RS264 algorithm to encode passwords, so the passwords will be hashed and
+Here we use an RS256 algorithm to encode passwords, so the passwords will be hashed and
 stored as hashes in database. The passwords will not be visible on plain text
 2. You are free to create maze by following the rules. You may have some
 wrong inputs but validations schemas are taking care of that your input will match
